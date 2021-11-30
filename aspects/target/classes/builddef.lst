@@ -1,0 +1,14 @@
+-Xajruntimetarget:1.5
+-Xlint:ignore
+-1.8
+-encoding
+UTF-8
+-source
+1.8
+-target
+1.8
+-classpath
+C:\Users\lukas\.m2\repository\org\aspectj\aspectjrt\1.8.10\aspectjrt-1.8.10.jar;C:\Users\lukas\IdeaProjects\dp2-demo\common\target\common-1.0-SNAPSHOT.jar;C:\Users\lukas\.m2\repository\log4j\log4j\1.2.17\log4j-1.2.17.jar;C:\Users\lukas\.m2\repository\net\sourceforge\plantuml\plantuml\8059\plantuml-8059.jar;C:\Users\lukas\IdeaProjects\dp2-demo\aspects\target\classes
+-d
+C:\Users\lukas\IdeaProjects\dp2-demo\aspects\target\classes
+C:\Users\lukas\IdeaProjects\dp2-demo\aspects\src\main\java\org\annoscheme\aspects\AnnotationInterceptor.java
