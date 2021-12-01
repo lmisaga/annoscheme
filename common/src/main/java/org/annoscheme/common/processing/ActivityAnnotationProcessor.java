@@ -28,6 +28,7 @@ import com.google.auto.service.AutoService;
 
 
 import net.sourceforge.plantuml.SourceStringReader;
+import org.annoscheme.common.model.DiagramModelCache;
 import org.apache.log4j.Logger;
 
 @SupportedAnnotationTypes({"org.annoscheme.common.annotation.Action"})
@@ -36,6 +37,7 @@ import org.apache.log4j.Logger;
 public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private List<DiagramElement> extractedDiagramElements = new ArrayList<>();
+	private final DiagramModelCache diagramCache = DiagramModelCache.getInstance();
 	private static final Logger logger = Logger.getLogger(ActivityAnnotationProcessor.class);
 
 	@Override
@@ -115,7 +117,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		ActivityDiagramModel testModel = new ActivityDiagramModel();
 		testModel.addElements(this.extractedDiagramElements);
 		testModel.setDiagramIdentifier(diagramIdentifiers.get(0)[0]);
-
+		diagramCache.addDiagramToCache(testModel);
 		System.out.println(testModel.toPlantUmlString());
 		try {
 			//TODO create separate reusable service for writing images
