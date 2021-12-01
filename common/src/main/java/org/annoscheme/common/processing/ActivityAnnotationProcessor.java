@@ -46,13 +46,14 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		for (TypeElement annotation: annotations) {
 			Set<ExecutableElement> annotatedElements = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(annotation);
 			if (!annotatedElements.isEmpty()) {
-
+				ActivityDiagramModel diagram = new ActivityDiagramModel();
 				annotatedElements.forEach(annotatedElement -> {
 					//annotated element with @Action might have more of annotation mirrors
 					List<? extends AnnotationMirror> annotationMirrors = annotatedElement.getAnnotationMirrors();
 					//
-					this.extractedDiagramElements.addAll(this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors));
+					this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors, diagram);
 				});
+				diagramCache.addDiagramToCache(diagram);
 				logger.info("Found" + extractedDiagramElements.size() + "diagram elements");
 			}
 		}
@@ -63,15 +64,16 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return true;
 	}
 
-	private List<DiagramElement> parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
-		List<DiagramElement> extractedElements = new ArrayList<>();
+	//TODO update to accommodate more than one diagram
+	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors, ActivityDiagramModel diagramModel) {
 		//if mirrors > 1, then conditional must be present
 		if (annotationMirrors.size() == 1) {
-			extractedElements.add(this.parseActivityDiagramElement(annotationMirrors.get(0)));
-		} else {
+			DiagramElement elementToAdd = this.parseActivityDiagramElement(annotationMirrors.get(0));
+			diagramModel.addElement(elementToAdd);
+		} /*else {
 			//parse conditional and activity diagram element
-		}
-		return extractedElements;
+
+		}*/
 	}
 
 	private DiagramElement parseActivityDiagramElement(AnnotationMirror mirror) {
@@ -114,15 +116,10 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	private void createDiagrams(List<DiagramElement> diagramElements) {
 		List<String[]> diagramIdentifiers = diagramElements.stream().map(DiagramElement::getDiagramIdentifiers).collect(Collectors.toList());
 		System.out.println(diagramIdentifiers);
-		ActivityDiagramModel testModel = new ActivityDiagramModel();
-		testModel.addElements(this.extractedDiagramElements);
-		testModel.setDiagramIdentifier(diagramIdentifiers.get(0)[0]);
-		diagramCache.addDiagramToCache(testModel);
-		System.out.println(testModel.toPlantUmlString());
 		try {
 			//TODO create separate reusable service for writing images
 			OutputStream os = new FileOutputStream("img/diagram.png");
-			SourceStringReader reader = new SourceStringReader(testModel.toPlantUmlString());
+			SourceStringReader reader = new SourceStringReader(diagramCache.getActivityDiagrams().get(0).toPlantUmlString());
 			String desc = reader.generateImage(os);
 		} catch (IOException e) {
 			e.printStackTrace();

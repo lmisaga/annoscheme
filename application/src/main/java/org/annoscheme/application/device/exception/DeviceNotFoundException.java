@@ -12,8 +12,8 @@ public class DeviceNotFoundException extends RuntimeException {
 
 	private final Logger logger = LoggerFactory.getLogger(DeviceNotFoundException.class);
 
-	@Action(message = "Log failed attempt to create Restock order", actionType = ActionType.END, parentMessage = "Find device by ID")
-	@Conditional(type = BranchingType.ALTERNATIVE, condition = "Found device?")
+//	@Action(message = "Log failed attempt to create Restock order", actionType = ActionType.END, parentMessage = "Find device by ID")
+//	@Conditional(type = BranchingType.ALTERNATIVE, condition = "Found device?")
 	public DeviceNotFoundException(String message) {
 		logger.error(message);
 	}

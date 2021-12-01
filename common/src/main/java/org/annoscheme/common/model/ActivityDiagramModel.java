@@ -1,9 +1,12 @@
 package org.annoscheme.common.model;
 
+import org.annoscheme.common.annotation.ActionType;
+
 import java.util.ArrayList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class ActivityDiagramModel implements PlantUmlIntegrable {
 
@@ -32,7 +35,33 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 	}
 
 	public void addElement(DiagramElement element) {
-		addElements(Collections.singletonList(element));
+		List<DiagramElement> sortedElements = this.getDiagramElements();
+		//find parent if not empty, then indexOf parent -> add after parent
+		if (sortedElements.isEmpty()) {
+			element.setParentElement(null);
+			sortedElements.add(element);
+			return;
+		}
+		if (ActionType.START.equals(element.getActionType())) {
+			if (sortedElements.stream().noneMatch(e -> e.getActionType().equals(ActionType.START))) {
+				sortedElements.add(0, element);
+				return;
+			} else {
+				throw new IllegalArgumentException("Diagram already contains start node");
+			}
+		}
+		//find parent
+		Optional<DiagramElement> parentElement = sortedElements.stream()
+															   .filter(x -> x.getMessage().equalsIgnoreCase(element.getParentMessage().toLowerCase()))
+															   .findFirst();
+
+		parentElement.ifPresent(foundParentElement -> {
+			element.setParentElement(foundParentElement);
+			sortedElements.add(sortedElements.indexOf(foundParentElement) + 1, element);
+		});
+
+
+		setDiagramElements(sortedElements);
 	}
 
 	public String getDiagramIdentifier() {

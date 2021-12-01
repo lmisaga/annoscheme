@@ -25,7 +25,7 @@ public class DiagramModelCache {
 	}
 
 	public List<ActivityDiagramModel> getActivityDiagrams() {
-		return activityDiagrams.subList(0, activityDiagrams.size() - 1);
+		return activityDiagrams.subList(0, activityDiagrams.size());
 	}
 
 }

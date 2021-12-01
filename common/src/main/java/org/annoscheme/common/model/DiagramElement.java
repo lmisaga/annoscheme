@@ -12,6 +12,8 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 
 	private String parentMessage;
 
+	private DiagramElement parentElement;
+
 	private ActionType actionType = ActionType.ACTION;
 
 	private String[] diagramIdentifiers;
@@ -65,5 +67,13 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 
 	public void setParentMessage(String parentMessage) {
 		this.parentMessage = trimAndReplaceQuotes(parentMessage);
+	}
+
+	public DiagramElement getParentElement() {
+		return parentElement;
+	}
+
+	public void setParentElement(DiagramElement parentElement) {
+		this.parentElement = parentElement;
 	}
 }
