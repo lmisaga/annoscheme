@@ -1,11 +1,12 @@
 package org.annoscheme.common.processing;
 
+import net.sourceforge.plantuml.SourceStringReader;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.annoscheme.common.model.ConditionalDiagramElement;
 import org.annoscheme.common.model.DiagramElement;
-
-
+import org.annoscheme.common.model.DiagramModelCache;
+import org.annoscheme.common.model.constants.AnnotationConstants;
+import org.apache.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -25,11 +26,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.auto.service.AutoService;
-
-
-import net.sourceforge.plantuml.SourceStringReader;
-import org.annoscheme.common.model.DiagramModelCache;
-import org.apache.log4j.Logger;
 
 @SupportedAnnotationTypes({"org.annoscheme.common.annotation.Action"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -68,6 +64,9 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors, ActivityDiagramModel diagramModel) {
 		//if mirrors > 1, then conditional must be present
 		if (annotationMirrors.size() == 1) {
+			if (annotationMirrors.get(0).getAnnotationType().asElement().getSimpleName().toString().equals(AnnotationConstants.CONDITIONAL_NAME)) {
+				throw new IllegalStateException("@Conditional must appear with @Action!");
+			}
 			DiagramElement elementToAdd = this.parseActivityDiagramElement(annotationMirrors.get(0));
 			diagramModel.addElement(elementToAdd);
 		} /*else {
