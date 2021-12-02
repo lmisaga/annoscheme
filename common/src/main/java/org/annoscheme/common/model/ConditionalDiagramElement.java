@@ -8,19 +8,9 @@ public class ConditionalDiagramElement extends DiagramElement {
 
 	private BranchingType branchingType;
 
-	private DiagramElement parent;
-
 	private DiagramElement mainFlowDirectChild;
 
 	private DiagramElement alternateFlowDirectChild;
-
-	public DiagramElement getParent() {
-		return parent;
-	}
-
-	public void setParent(DiagramElement parent) {
-		this.parent = parent;
-	}
 
 	public DiagramElement getMainFlowDirectChild() {
 		return mainFlowDirectChild;

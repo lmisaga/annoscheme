@@ -17,8 +17,8 @@ public class RestockOrderService {
 		this.restockOrderRepository = new RestockOrderRepository();
 	}
 
-//	@Action(diagramIdentifiers = {"1"}, message = "Create restock order", parentMessage = "Find device by ID")
-//	@Conditional(type = BranchingType.MAIN, condition = "Found device?")
+	@Action(diagramIdentifiers = {"1"}, message = "Create restock order", parentMessage = "Find device by ID")
+	@Conditional(type = BranchingType.MAIN, condition = "Found device?")
 	public void createRestockOrder(RestockOrderRequestModel requestModel) {
 		Device device = this.deviceRepository.findDeviceById(requestModel.getDeviceId());
 		if (device != null) {

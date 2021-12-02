@@ -3,8 +3,6 @@ package org.annoscheme.common.model;
 import org.annoscheme.common.annotation.ActionType;
 
 import java.util.ArrayList;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +46,25 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 				return;
 			} else {
 				throw new IllegalArgumentException("Diagram already contains start node");
+			}
+		}
+		if (element instanceof ConditionalDiagramElement) {
+			ConditionalDiagramElement conditionalElement = (ConditionalDiagramElement) element;
+			//lookup if not already exist
+			Optional<DiagramElement> existingConditionalOptional = sortedElements
+					.stream()
+					.filter(x -> x instanceof ConditionalDiagramElement &&
+								 ((ConditionalDiagramElement) x).getCondition().equalsIgnoreCase(conditionalElement.getCondition().toLowerCase()) &&
+								 x.getParentMessage().equalsIgnoreCase(conditionalElement.getParentMessage().toLowerCase()))
+					.findFirst();
+			//if existing, update it's branches
+			if (existingConditionalOptional.isPresent()) {
+				ConditionalDiagramElement existingConditional = (ConditionalDiagramElement) existingConditionalOptional.get();
+				if (conditionalElement.getAlternateFlowDirectChild() != null && existingConditional.getAlternateFlowDirectChild() == null) {
+					existingConditional.setAlternateFlowDirectChild(conditionalElement.getAlternateFlowDirectChild());
+				} else {
+					existingConditional.setMainFlowDirectChild(conditionalElement.getMainFlowDirectChild());
+				}
 			}
 		}
 		//find parent

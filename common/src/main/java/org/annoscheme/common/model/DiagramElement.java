@@ -4,7 +4,10 @@ import org.annoscheme.common.annotation.ActionType;
 
 import java.util.Arrays;
 
-import static org.annoscheme.common.model.constants.PlantUmlConstants.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_END;
+import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_START;
 
 public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 
@@ -19,6 +22,7 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 	private String[] diagramIdentifiers;
 
 	@Override
+	@JsonIgnore
 	public String toPlantUmlString() {
 		//TODO check for very long messages and split them by certain character count
 		StringBuilder plantUmlStringBuilder = new StringBuilder(getPlantUmlElementMessage());
@@ -30,8 +34,9 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 		return plantUmlStringBuilder.toString();
 	}
 
+	@JsonIgnore
 	public String getPlantUmlElementMessage() {
-		return ":" + message.trim() + ";" + " \n";
+		return message != null ? ":" + message.trim() + ";" + " \n" : "";
 	}
 
 	public String getMessage() {
@@ -55,9 +60,9 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 	}
 
 	public void setDiagramIdentifiers(String[] diagramIdentifiers) {
-		this.diagramIdentifiers = Arrays.stream(diagramIdentifiers)
+		this.diagramIdentifiers = diagramIdentifiers != null ? Arrays.stream(diagramIdentifiers)
 										.map(this::trimAndReplaceQuotes)
-										.toArray(String[]::new);
+										.toArray(String[]::new) : null;
 
 	}
 
