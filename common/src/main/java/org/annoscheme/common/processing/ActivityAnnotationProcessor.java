@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
@@ -51,7 +52,11 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 						//annotated element with @Action might have more of annotation mirrors
 						List<? extends AnnotationMirror> annotationMirrors = annotatedElement.getAnnotationMirrors();
 						//
-						this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors, diagram);
+						try{
+							this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors, diagram);
+						} catch (NoSuchElementException ex) {
+							ex.printStackTrace();
+						}
 					});
 					diagramCache.addDiagramToCache(diagram);
 
@@ -173,7 +178,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			SourceStringReader reader = new SourceStringReader(diagramCache.getActivityDiagrams().get(0).toPlantUmlString());
 			logger.info("\n" + diagramCache.getActivityDiagrams().get(0).toPlantUmlString());
 			String desc = reader.generateImage(os);
-		} catch (IOException e) {
+		} catch (IOException | NoSuchElementException e) {
 			e.printStackTrace();
 		}
 	}

@@ -62,7 +62,7 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 		while (!current.getActionType().equals(ActionType.END)) {
 			DiagramElement finalCurrent = current;
 			DiagramElement child = diagramElements.stream()
-												  .filter(x -> x.getParentElement() != null &&
+												  .filter(x -> x.getParentMessage() != null &&
 															   x.getParentMessage().equalsIgnoreCase(finalCurrent.getMessage().toLowerCase()))
 												  .findFirst()
 												  .get();
@@ -120,7 +120,6 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 
 		if (parentElement.isPresent()) {
 			DiagramElement foundParentElement = parentElement.get();
-			element.setParentElement(foundParentElement);
 			sortedElements.add(sortedElements.indexOf(foundParentElement) + 1, element);
 		} else {
 			sortedElements.add(element);
