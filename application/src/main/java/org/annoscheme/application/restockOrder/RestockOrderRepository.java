@@ -29,7 +29,7 @@ public class RestockOrderRepository {
 	@Action(actionType = ActionType.END,
 			message="Save restock order",
 			diagramIdentifiers = {"1"},
-			parentMessage = "Find device by ID")
+			parentMessage = "Create restock order")
 	public void insertRestockOrder(RestockOrder restockOrder) {
 		this.restockOrdersMockStorage.add(restockOrder);
 	}

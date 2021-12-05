@@ -1,5 +1,6 @@
 package org.annoscheme.common.model;
 
+import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
 
 public class ConditionalDiagramElement extends DiagramElement {
@@ -11,6 +12,10 @@ public class ConditionalDiagramElement extends DiagramElement {
 	private DiagramElement mainFlowDirectChild;
 
 	private DiagramElement alternateFlowDirectChild;
+
+	public ActionType getActionType() {
+		return ActionType.CONDITIONAL;
+	}
 
 	public DiagramElement getMainFlowDirectChild() {
 		return mainFlowDirectChild;
@@ -29,11 +34,11 @@ public class ConditionalDiagramElement extends DiagramElement {
 	}
 
 	public String getCondition() {
-		return condition;
+		return trimAndReplaceQuotes(condition);
 	}
 
 	public void setCondition(String condition) {
-		this.condition = condition;
+		this.condition = trimAndReplaceQuotes(condition);
 	}
 
 	public BranchingType getBranchingType() {

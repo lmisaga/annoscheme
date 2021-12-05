@@ -1,10 +1,16 @@
 package org.annoscheme.common.model;
 
+import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import static org.annoscheme.common.model.constants.PlantUmlConstants.END_UML;
+import static org.annoscheme.common.model.constants.PlantUmlConstants.START_UML;
 
 public class ActivityDiagramModel implements PlantUmlIntegrable {
 
@@ -13,23 +19,57 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 	private List<DiagramElement> diagramElements = new ArrayList<>();
 
 	@Override
+	@JsonIgnore
 	public String toPlantUmlString() {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
-		plantUmlStringBuilder.append("@startuml \n");
-		if (!diagramElements.isEmpty()) {
-			diagramElements.stream()
-						   .map(DiagramElement::toPlantUmlString)
-						   .forEach(plantUmlStringBuilder::append);
+		DiagramElement startElement = diagramElements.stream().filter(x -> x.getActionType().equals(ActionType.START)).findFirst().orElse(null);
+		if (startElement == null) {
+			throw new IllegalStateException("Diagram has no starting element");
 		}
-		plantUmlStringBuilder.append("@enduml \n");
+		plantUmlStringBuilder.append(START_UML);
+		plantUmlStringBuilder.append(startElement.toPlantUmlString());
+		DiagramElement current = startElement;
+		boolean done = false;
+		while (!done) {
+			DiagramElement finalCurrent = current;
+			current = diagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().get();
+			if (current instanceof ConditionalDiagramElement) {
+				ConditionalDiagramElement currentConditional = (ConditionalDiagramElement) current;
+				plantUmlStringBuilder.append("if (")
+									 .append(currentConditional.getCondition())
+									 .append(") ")
+						.append("then ").append("(true) \n");
+				//get main branch
+				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getMainFlowDirectChild()));
+				plantUmlStringBuilder.append("else (").append("false").append(") \n");
+				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getAlternateFlowDirectChild()));
+				done = true;
+			} else {
+				plantUmlStringBuilder.append(current.toPlantUmlString());
+			}
+			if (current.getActionType().equals(ActionType.END)) {
+				done = true;
+			}
+		}
+		plantUmlStringBuilder.append(END_UML);
 		return plantUmlStringBuilder.toString();
 	}
 
-	public void addElements(List<DiagramElement> elements) {
-		if (this.diagramElements == null) {
-			this.diagramElements = new ArrayList<>();
+	private String getPlantUmlConditionalBranch(DiagramElement fromElement) {
+		StringBuilder plantUmlStringBuilder = new StringBuilder();
+		DiagramElement current = fromElement;
+		plantUmlStringBuilder.append(current.toPlantUmlString());
+		while (!current.getActionType().equals(ActionType.END)) {
+			DiagramElement finalCurrent = current;
+			DiagramElement child = diagramElements.stream()
+												  .filter(x -> x.getParentElement() != null &&
+															   x.getParentMessage().equalsIgnoreCase(finalCurrent.getMessage().toLowerCase()))
+												  .findFirst()
+												  .get();
+			plantUmlStringBuilder.append(child.toPlantUmlString());
+			current = child;
 		}
-		this.diagramElements.addAll(elements);
+		return plantUmlStringBuilder.toString();
 	}
 
 	public void addElement(DiagramElement element) {
@@ -41,16 +81,18 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 			return;
 		}
 		if (ActionType.START.equals(element.getActionType())) {
-			if (sortedElements.stream().noneMatch(e -> e.getActionType().equals(ActionType.START))) {
+			if (StringUtils.isEmpty(element.getParentMessage()) && sortedElements.stream().noneMatch(e -> e.getActionType().equals(ActionType.START))) {
 				sortedElements.add(0, element);
 				return;
 			} else {
 				throw new IllegalArgumentException("Diagram already contains start node");
 			}
 		}
+
+		ConditionalDiagramElement conditionalElement;
 		if (element instanceof ConditionalDiagramElement) {
-			ConditionalDiagramElement conditionalElement = (ConditionalDiagramElement) element;
-			//lookup if not already exist
+			conditionalElement = (ConditionalDiagramElement) element;
+			//lookup if conditional with same condition does not exist already, if yes update with new branch
 			Optional<DiagramElement> existingConditionalOptional = sortedElements
 					.stream()
 					.filter(x -> x instanceof ConditionalDiagramElement &&
@@ -59,12 +101,16 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 					.findFirst();
 			//if existing, update it's branches
 			if (existingConditionalOptional.isPresent()) {
+				//there already is existing conditional with same condition -> update main/alt branch
 				ConditionalDiagramElement existingConditional = (ConditionalDiagramElement) existingConditionalOptional.get();
 				if (conditionalElement.getAlternateFlowDirectChild() != null && existingConditional.getAlternateFlowDirectChild() == null) {
 					existingConditional.setAlternateFlowDirectChild(conditionalElement.getAlternateFlowDirectChild());
 				} else {
 					existingConditional.setMainFlowDirectChild(conditionalElement.getMainFlowDirectChild());
 				}
+				return;
+			} else {
+				//no existing conditional, create new & add branch
 			}
 		}
 		//find parent
@@ -72,11 +118,13 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 															   .filter(x -> x.getMessage().equalsIgnoreCase(element.getParentMessage().toLowerCase()))
 															   .findFirst();
 
-		parentElement.ifPresent(foundParentElement -> {
+		if (parentElement.isPresent()) {
+			DiagramElement foundParentElement = parentElement.get();
 			element.setParentElement(foundParentElement);
 			sortedElements.add(sortedElements.indexOf(foundParentElement) + 1, element);
-		});
-
+		} else {
+			sortedElements.add(element);
+		}
 
 		setDiagramElements(sortedElements);
 	}
