@@ -1,5 +1,6 @@
 package org.annoscheme.common.model;
 
+import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
 
 import java.util.Arrays;
@@ -36,7 +37,17 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 
 	@JsonIgnore
 	public String getPlantUmlElementMessage() {
-		return message != null ? ":" + message.trim() + ";" + " \n" : "";
+		StringBuilder plantUmlMessage = new StringBuilder("");
+		if (StringUtils.isEmpty(message)) {
+			return plantUmlMessage.toString();
+		}
+		plantUmlMessage.append(":").append(trimAndReplaceQuotes(message));
+		if (message.endsWith("]")) {
+			plantUmlMessage.append(" \n ");
+		} else {
+			plantUmlMessage.append("; ").append("\n ");
+		}
+		return plantUmlMessage.toString();
 	}
 
 	public String getMessage() {
