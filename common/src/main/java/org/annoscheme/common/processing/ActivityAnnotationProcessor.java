@@ -1,9 +1,9 @@
 package org.annoscheme.common.processing;
 
-import net.sourceforge.plantuml.SourceStringReader;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
 import org.annoscheme.common.io.ObjectSerializer;
+import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.ConditionalDiagramElement;
 import org.annoscheme.common.model.DiagramElement;
@@ -20,9 +20,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -172,14 +169,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		//TODO remove, test
 		List<ActivityDiagramModel> test = ObjectSerializer.deserializeCachedDiagramList();
 		logger.info("diagramIdentifiers: " + diagramIdentifiers);
-		try {
-			//TODO create separate reusable service for writing images
-			OutputStream os = new FileOutputStream("img/diagram.png");
-			SourceStringReader reader = new SourceStringReader(diagramCache.getActivityDiagrams().get(0).toPlantUmlString());
-			logger.info("\n" + diagramCache.getActivityDiagrams().get(0).toPlantUmlString());
-			String desc = reader.generateImage(os);
-		} catch (IOException | NoSuchElementException e) {
-			e.printStackTrace();
-		}
+		VisualDiagramGenerator.generateImageFromPlantUmlString(diagramCache.getActivityDiagrams().get(0).toPlantUmlString(), "1");
 	}
 }
