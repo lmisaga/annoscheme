@@ -1,7 +1,9 @@
-package org.annoscheme.common.model;
+package org.annoscheme.common.model.element;
 
 import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
+import org.annoscheme.common.model.PlantUmlIntegrable;
+import org.annoscheme.common.model.UmlParseable;
 
 import java.util.Arrays;
 
@@ -43,9 +45,9 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 		}
 		plantUmlMessage.append(":").append(trimAndReplaceQuotes(message));
 		if (message.endsWith("]")) {
-			plantUmlMessage.append(" \n ");
+			plantUmlMessage.append("\n");
 		} else {
-			plantUmlMessage.append("; ").append("\n ");
+			plantUmlMessage.append(";\n");
 		}
 		return plantUmlMessage.toString();
 	}
@@ -78,7 +80,7 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 	}
 
 	public String getParentMessage() {
-		return parentMessage;
+		return parentMessage != null ? parentMessage: "";
 	}
 
 	public void setParentMessage(String parentMessage) {

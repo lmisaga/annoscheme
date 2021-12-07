@@ -5,10 +5,10 @@ import org.annoscheme.common.annotation.BranchingType;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.annoscheme.common.model.ConditionalDiagramElement;
-import org.annoscheme.common.model.DiagramElement;
 import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
+import org.annoscheme.common.model.element.ConditionalDiagramElement;
+import org.annoscheme.common.model.element.DiagramElement;
 import org.apache.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -165,9 +165,10 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private void createDiagrams() {
 		List<String[]> diagramIdentifiers = null;
-		ObjectSerializer.serializeCachedDiagramList(DiagramModelCache.getInstance().getActivityDiagrams());
+		ActivityDiagramModel model = DiagramModelCache.getInstance().getActivityDiagrams().get(0);
+		ObjectSerializer.serializeCachedDiagramList(model);
 		//TODO remove, test
-		List<ActivityDiagramModel> test = ObjectSerializer.deserializeCachedDiagramList();
+		ActivityDiagramModel test = ObjectSerializer.deserializeCachedDiagramList();
 		logger.info("diagramIdentifiers: " + diagramIdentifiers);
 		VisualDiagramGenerator.generateImageFromPlantUmlString(diagramCache.getActivityDiagrams().get(0).toPlantUmlString(), "1");
 	}

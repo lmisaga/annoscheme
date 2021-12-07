@@ -4,75 +4,85 @@ import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.annoscheme.common.model.DiagramElement;
+import org.annoscheme.common.model.element.DiagramElement;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.ConstructorSignature;
-import org.aspectj.lang.reflect.MethodSignature;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Aspect
 public class AnnotationInterceptor {
 
 	private static final Logger logger = Logger.getLogger(AnnotationInterceptor.class);
 
-	private List<ActivityDiagramModel> diagramModels = ObjectSerializer.deserializeCachedDiagramList();
+	private List<ActivityDiagramModel> diagramModels = Collections.singletonList(ObjectSerializer.deserializeCachedDiagramList());
 
-	@Around("@annotation(org.annoscheme.common.annotation.Action)")
-	public Object annotation(ProceedingJoinPoint joinPoint) throws Throwable {
-//		logger.info(joinPoint);
-//		logger.info(diagramModels);
-//		return joinPoint.proceed();
-		Object res = null;
-		res = joinPoint.proceed();
-		if (res == null)
-			return res;
-		Class<?> c1 = res.getClass();
-		Field[] fields = c1.getDeclaredFields();
-		MethodSignature methodSignature = null;
-		ConstructorSignature constructorSignature = null;
-		try {
-			methodSignature = (MethodSignature) joinPoint.getSignature();
-		} catch (ClassCastException ex) {
-			constructorSignature = (ConstructorSignature) joinPoint.getSignature();
+	private Integer executionCount = 1;
+
+	@Around("execution(* *(..)) && @annotation(actionAnnotation)")
+	public Object annotation(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
+		ActivityDiagramModel currentDiagram = diagramModels.get(0);
+		Object joinPointResult = joinPoint.proceed();
+		if (joinPointResult == null) {
+			return null;
 		}
-		Action actionAnnotation = methodSignature != null ? methodSignature.getMethod().getAnnotation(Action.class) :
-								  constructorSignature != null ? (Action) constructorSignature.getConstructor().getAnnotation(Action.class)
-															   : null;
 		logger.info(actionAnnotation);
-		DiagramElement element = diagramModels.get(0).getDiagramElements().stream().filter(x -> x.getMessage().equals(actionAnnotation.message())).findFirst().get();
-		DiagramElement successorElement = diagramModels.get(0).getDiagramElements().get(diagramModels.get(0).getDiagramElements().indexOf(element)+1);
-		diagramModels.get(0).getDiagramElements().add(createObjectDiagramElement(res, actionAnnotation, successorElement, methodSignature));
-		VisualDiagramGenerator.generateImageFromPlantUmlString(diagramModels.get(0).toPlantUmlString(), "test");
-		AccessibleObject.setAccessible(fields, true);
-		for (Field field : fields) {
-			if (!Modifier.isStatic(field.getModifiers())) {
-				System.out.println(field + " = " + field.get(res));
-			}
-		}
-		return res;
+		this.createObjectAndGenerateDiagram(new ActivityDiagramModel(currentDiagram), joinPointResult, actionAnnotation);
+		return joinPointResult;
 	}
 
-	private DiagramElement createObjectDiagramElement(Object joinPointResult, Action extractedAnnotation, DiagramElement successor,
-													  MethodSignature methodSignature) throws Throwable {
+	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
+		DiagramElement objectElement = createObjectDiagramElement(joinPointResult);
+		Optional<DiagramElement> element = null;
+		Optional<DiagramElement> successorOptional = null;
+		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(actionAnnotation.message())).findFirst();
+		if (element.isPresent()) {
+			DiagramElement currentElement = element.get();
+			successorOptional = currentDiagram.getDiagramElements().stream().filter(x -> x.getParentMessage().equals(currentElement.getMessage())).findFirst();
+			if (successorOptional.isPresent()) {
+				objectElement.setParentMessage(currentElement.getMessage());
+				DiagramElement successorElement = successorOptional.get();
+				successorElement.setParentMessage(objectElement.getMessage());
+				currentDiagram.addElement(objectElement);
+				objectElement.setDiagramIdentifiers(currentElement.getDiagramIdentifiers());
+				//successor is present, that means object element is going to be placed within the diagram
+
+			} else {
+				logger.info("successor le missing :)");
+				//there is no successor, which means that currentElement should be ActionType.END -> ActionType needs to be altered, along with
+			}
+			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), "test"+executionCount++);
+		}
+		// get successor and current element
+		// create object diagram
+		//append object diagram to the diagram after element but before predecessor
+		//generate activity diagram with this object
+		//done
+
+	}
+
+	private DiagramElement createObjectDiagramElement(Object joinPointResult) throws Throwable {
 		DiagramElement objectElement = new DiagramElement();
-		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPointResult.getClass().getSimpleName() + "</b>");
+		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPointResult.getClass().getSimpleName() + "</b>\n");
 		Field[] fields = joinPointResult.getClass().getDeclaredFields();
 		AccessibleObject.setAccessible(fields, true);
 		for (Field field : fields) {
 			if (!Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
-				objectMessageBuilder.append(field).append(": ").append(field.getType().getSimpleName()).append(" = ").append(field.get(joinPointResult));
+				objectMessageBuilder.append(field.getName())
+									.append(": ")
+									.append(field.getType().getSimpleName()).append(" = ").append(field.get(joinPointResult))
+									.append("\n");
 			}
 		}
-		objectElement.setParentMessage(extractedAnnotation.message());
-		objectElement.setDiagramIdentifiers(successor.getDiagramIdentifiers());
-		successor.setParentMessage(objectElement.getMessage());
+		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
+		objectElement.setMessage(objectMessageBuilder.toString().trim());
 		return objectElement;
 	}
 }

@@ -30,8 +30,10 @@ public class RestockOrderRepository {
 			message="Save restock order",
 			diagramIdentifiers = {"1"},
 			parentMessage = "Create restock order")
-	public void insertRestockOrder(RestockOrder restockOrder) {
+	public RestockOrder insertRestockOrder(RestockOrder restockOrder) {
+		System.out.println("insertRestockOrder");
 		this.restockOrdersMockStorage.add(restockOrder);
+		return restockOrder;
 	}
 
 }

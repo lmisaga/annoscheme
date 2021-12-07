@@ -7,7 +7,7 @@ public class DiagramModelCache {
 
 	private static DiagramModelCache instance = null;
 
-	private final List<ActivityDiagramModel> activityDiagrams;
+	private List<ActivityDiagramModel> activityDiagrams;
 
 	private DiagramModelCache() {
 		this.activityDiagrams = new ArrayList<>();
@@ -25,7 +25,7 @@ public class DiagramModelCache {
 	}
 
 	public List<ActivityDiagramModel> getActivityDiagrams() {
-		return activityDiagrams.subList(0, activityDiagrams.size());
+		return activityDiagrams;
 	}
 
 }

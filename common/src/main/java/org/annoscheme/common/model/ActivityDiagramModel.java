@@ -2,6 +2,8 @@ package org.annoscheme.common.model;
 
 import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
+import org.annoscheme.common.model.element.ConditionalDiagramElement;
+import org.annoscheme.common.model.element.DiagramElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.END_UML;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.START_UML;
 
-public class ActivityDiagramModel implements PlantUmlIntegrable {
+public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 
 	private String diagramIdentifier;
 
@@ -128,6 +130,19 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 		setDiagramElements(sortedElements);
 	}
 
+	public ActivityDiagramModel() {
+	}
+
+	public ActivityDiagramModel(String diagramIdentifier, List<DiagramElement> diagramElements) {
+		this.diagramIdentifier = diagramIdentifier;
+		this.diagramElements = diagramElements;
+	}
+
+	public ActivityDiagramModel(ActivityDiagramModel model) {
+		this.diagramElements = model.getDiagramElements();
+		this.diagramIdentifier = model.getDiagramIdentifier();
+	}
+
 	public String getDiagramIdentifier() {
 		return diagramIdentifier;
 	}
@@ -142,5 +157,14 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 
 	public void setDiagramElements(List<DiagramElement> diagramElements) {
 		this.diagramElements = diagramElements;
+	}
+
+	@Override
+	public ActivityDiagramModel clone() {
+		try {
+			return (ActivityDiagramModel) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new AssertionError();
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package org.annoscheme.common.model;
+package org.annoscheme.common.model.element;
 
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
