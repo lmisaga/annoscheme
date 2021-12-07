@@ -13,8 +13,7 @@ import org.aspectj.lang.annotation.Aspect;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Optional;
 
 @Aspect
@@ -22,13 +21,13 @@ public class AnnotationInterceptor {
 
 	private static final Logger logger = Logger.getLogger(AnnotationInterceptor.class);
 
-	private List<ActivityDiagramModel> diagramModels = Collections.singletonList(ObjectSerializer.deserializeCachedDiagramList());
+	private HashMap<String, ActivityDiagramModel> diagramsMap = ObjectSerializer.deserializeCachedDiagramsMap();
 
 	private Integer executionCount = 1;
 
 	@Around("execution(* *(..)) && @annotation(actionAnnotation)")
 	public Object annotation(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
-		ActivityDiagramModel currentDiagram = diagramModels.get(0);
+		ActivityDiagramModel currentDiagram = (ActivityDiagramModel) diagramsMap.values().toArray()[0];
 		Object joinPointResult = joinPoint.proceed();
 		if (joinPointResult == null) {
 			return null;
@@ -55,11 +54,12 @@ public class AnnotationInterceptor {
 				//successor is present, that means object element is going to be placed within the diagram
 
 			} else {
-				logger.info("successor le missing :)");
+				logger.debug("No successor");
 				//there is no successor, which means that currentElement should be ActionType.END -> ActionType needs to be altered, along with
 			}
-			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), "test"+executionCount++);
+			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), "test" + executionCount);
 		}
+		executionCount++;
 		// get successor and current element
 		// create object diagram
 		//append object diagram to the diagram after element but before predecessor

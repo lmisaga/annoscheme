@@ -1,6 +1,10 @@
 package org.annoscheme.common.model;
 
+import org.annoscheme.common.model.element.DiagramElement;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class DiagramModelCache {
@@ -9,8 +13,12 @@ public class DiagramModelCache {
 
 	private List<ActivityDiagramModel> activityDiagrams;
 
+	//<key, value> pairs of <diagramIdentifier, diagramModel>
+	private HashMap<String, ActivityDiagramModel> diagramsMap;
+
 	private DiagramModelCache() {
 		this.activityDiagrams = new ArrayList<>();
+		this.diagramsMap = new HashMap<>();
 	}
 
 	public static DiagramModelCache getInstance() {
@@ -21,7 +29,48 @@ public class DiagramModelCache {
 	}
 
 	public void addDiagramToCache(ActivityDiagramModel model) {
-		this.activityDiagrams.add(model);
+		String diagramIdentifier = model.getDiagramIdentifier() != null && !model.getDiagramIdentifier().isEmpty() ? model.getDiagramIdentifier() : null;
+		if (diagramIdentifier != null) {
+			this.diagramsMap.put(diagramIdentifier, model);
+		}
+	}
+
+	public boolean addElementToDiagramByIdentifier(DiagramElement elementToAdd) {
+		if (elementToAdd.getDiagramIdentifiers().length == 1) {
+			this.getModelByDiagramIdentifier(elementToAdd.getDiagramIdentifiers()[0]).addElement(elementToAdd);
+			return true;
+		} else if (elementToAdd.getDiagramIdentifiers().length > 1) {
+			Arrays.stream(elementToAdd.getDiagramIdentifiers())
+				  .map(identifier -> {
+					  if (this.containsDiagramByIdentifier(identifier)) {
+						  this.getModelByDiagramIdentifier(identifier).addElement(elementToAdd);
+					  } else {
+						  ActivityDiagramModel model = new ActivityDiagramModel();
+						  model.setDiagramIdentifier(identifier);
+						  model.addElement(elementToAdd);
+						  this.diagramsMap.put(identifier, model);
+					  }
+					  return true;
+				  }).close();
+		}
+		return false;
+	}
+
+	public boolean containsDiagramByIdentifier(String diagramIdentifier) {
+		return this.diagramsMap.containsKey(diagramIdentifier) && this.diagramsMap.get(diagramIdentifier) != null;
+	}
+
+	public ActivityDiagramModel getModelByDiagramIdentifier(String identifier) {
+		ActivityDiagramModel model = this.diagramsMap != null ? this.diagramsMap.get(identifier) : null;
+		if (model == null) {
+			model = new ActivityDiagramModel(identifier);
+			this.addDiagramToCache(model);
+		}
+		return this.diagramsMap.get(identifier);
+	}
+
+	public HashMap<String, ActivityDiagramModel> getDiagramsMap() {
+		return diagramsMap;
 	}
 
 	public List<ActivityDiagramModel> getActivityDiagrams() {

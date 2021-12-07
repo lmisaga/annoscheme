@@ -143,6 +143,10 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		this.diagramIdentifier = model.getDiagramIdentifier();
 	}
 
+	public ActivityDiagramModel(String diagramIdentifier) {
+		this.diagramIdentifier = diagramIdentifier;
+	}
+
 	public String getDiagramIdentifier() {
 		return diagramIdentifier;
 	}

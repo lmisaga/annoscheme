@@ -4,6 +4,7 @@ import org.annoscheme.common.model.ActivityDiagramModel;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -22,6 +23,7 @@ public class ObjectSerializer {
 		PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 																			  .allowIfSubType("org.annoscheme.common.model")
 																			  .allowIfSubType("java.util.ArrayList")
+																			  .allowIfSubType("java.util.HashMap")
 																			  .build();
 		objectMapper.activateDefaultTyping(typeValidator, ObjectMapper.DefaultTyping.NON_FINAL);
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -30,17 +32,17 @@ public class ObjectSerializer {
 
 	}
 
-	public static void serializeCachedDiagramList(ActivityDiagramModel diagramModel) {
+	public static void serializeCachedDiagramsMap(HashMap<String, ActivityDiagramModel> diagramMap) {
 		try {
-			objectMapper.writeValue(new File(DIAGRAM_CACHE_PATH), diagramModel);
+			objectMapper.writeValue(new File(DIAGRAM_CACHE_PATH), diagramMap);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static ActivityDiagramModel deserializeCachedDiagramList() {
+	public static HashMap<String, ActivityDiagramModel> deserializeCachedDiagramsMap() {
 		try {
-			return objectMapper.readValue(new File("diagram-cache.json"), ActivityDiagramModel.class);
+			return objectMapper.readValue(new File("diagram-cache.json"), HashMap.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -13,7 +13,7 @@ public @interface Action {
 
 	ActionType actionType() default ActionType.ACTION;
 
-	String[] diagramIdentifiers() default {};
+	String[] diagramIdentifiers();
 
 	String parentMessage() default "";
 

@@ -22,7 +22,7 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 
 	private ActionType actionType = ActionType.ACTION;
 
-	private String[] diagramIdentifiers;
+	private String[] diagramIdentifiers = new String[]{};
 
 	@Override
 	@JsonIgnore
