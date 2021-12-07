@@ -20,10 +20,12 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
 import com.google.auto.service.AutoService;
@@ -33,13 +35,31 @@ import com.google.auto.service.AutoService;
 @AutoService(Processor.class)
 public class ActivityAnnotationProcessor extends AbstractProcessor {
 
+	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
+
 	private static final Logger logger = Logger.getLogger(ActivityAnnotationProcessor.class);
+	private static final Properties properties = initProperties();
 
 	private final DiagramModelCache diagramCache = DiagramModelCache.getInstance();
+
+	private static Properties initProperties() {
+		try (InputStream input = ActivityAnnotationProcessor.class.getResourceAsStream(PROPERTIES_PATH)) {
+			Properties properties = new Properties();
+			properties.load(input);
+			System.out.println(properties);
+			return properties;
+
+		} catch (Exception io) {
+			logger.error("Properties could not be initialized due to " + io.getMessage() + " -> Defaulting to string annotation value definitions");
+			io.printStackTrace();
+		}
+		return null;
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		System.out.println(properties);
 		if (!annotations.isEmpty()) {
 			for (TypeElement annotation : annotations) {
 				Set<ExecutableElement> annotatedElements = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(annotation);
