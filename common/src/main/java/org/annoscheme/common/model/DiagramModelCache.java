@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public class DiagramModelCache {
 
-	private static DiagramModelCache instance = null;
+	private static DiagramModelCache instance;
 
 	//<key, value> pairs of <diagramIdentifier, diagramModel>
 	private final HashMap<String, ActivityDiagramModel> diagramsMap;

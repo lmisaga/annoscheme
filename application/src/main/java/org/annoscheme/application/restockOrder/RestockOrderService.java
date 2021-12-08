@@ -18,8 +18,8 @@ public class RestockOrderService {
 		this.restockOrderRepository = new RestockOrderRepository();
 	}
 
-	@Action(diagramIdentifiers = {"1"}, message = "Create restock order", parentMessage = "Find device by ID")
-	@Conditional(type = BranchingType.MAIN, condition = "Found device?", diagramIdentifiers = {"1"})
+	@Action(diagramIdentifiers = {"d1.id"}, message = "d1.createResOr", parentMessage = "d1.findById")
+	@Conditional(type = BranchingType.MAIN, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"})
 	public RestockOrder createRestockOrder(RestockOrderRequestModel requestModel) {
 		Device device = this.deviceRepository.findDeviceById(requestModel.getDeviceId());
 		if (device != null) {
@@ -29,7 +29,7 @@ public class RestockOrderService {
 		}
 	}
 
-	@Action(actionType = ActionType.ACTION, message = "Cancel restock order", diagramIdentifiers = {"2"}, parentMessage = "Find restock order by ID")
+	@Action(actionType = ActionType.ACTION, message = "d2.cancel", diagramIdentifiers = {"d2.id"}, parentMessage = "d2.findResOrById")
 	public void cancelRestockOrder(Integer restockOrderId) {
 		RestockOrder orderToCancel = this.restockOrderRepository.findRestockOrderById(restockOrderId);
 		orderToCancel.setQuantityToRestock(0); // just for demonstration

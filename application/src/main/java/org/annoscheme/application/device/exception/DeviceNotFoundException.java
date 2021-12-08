@@ -8,9 +8,9 @@ import org.apache.log4j.Logger;
 
 public class DeviceNotFoundException extends RuntimeException {
 
-	@Action(message = "Log failed attempt to create Restock order", actionType = ActionType.END, parentMessage = "Find device by ID",
-			diagramIdentifiers = {"1"})
-	@Conditional(type = BranchingType.ALTERNATIVE, condition = "Found device?", diagramIdentifiers = {"1"})
+	@Action(message = "d1.logFailed", actionType = ActionType.END, parentMessage = "d1.findById",
+			diagramIdentifiers = {"d1.id"})
+	@Conditional(type = BranchingType.ALTERNATIVE, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"})
 	public DeviceNotFoundException(String message) {
 		Logger.getLogger(DeviceNotFoundException.class).error(message);
 	}

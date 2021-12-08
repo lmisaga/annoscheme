@@ -103,7 +103,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
 		annotationMirrors = filterMirrorsForActionAnnotations(annotationMirrors);
-		//TODO change this, not valid for multiple @Action-s
 		if (annotationMirrors.size() == 1 && annotationMirrors.get(0).getAnnotationType()
 															  .asElement().getSimpleName().toString()
 															  .equals(AnnotationConstants.CONDITIONAL_NAME)) {
@@ -169,20 +168,13 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "message":
-					element.setMessage(String.valueOf(value));
+					element.setMessage(this.resolvePropertyValue(String.valueOf(value)));
 					break;
 				case "diagramIdentifiers":
-					List<String> identifiers = value.getValue() instanceof List ?
-											   (List<String>) value.getValue() :
-											   new ArrayList<>();
-					if (identifiers.size() == 1) {
-						element.setDiagramIdentifiers(new String[]{String.valueOf(identifiers.get(0))});
-					} else {
-						element.setDiagramIdentifiers(identifiers.stream().map(String::valueOf).toArray(String[]::new));
-					}
+					element.setDiagramIdentifiers(parseDiagramIdentifiers(value));
 					break;
 				case "parentMessage":
-					element.setParentMessage(String.valueOf(value));
+					element.setParentMessage(this.resolvePropertyValue(String.valueOf(value)));
 					break;
 				case "actionType":
 					element.setActionType(getActionTypeForElement(String.valueOf(value.getValue())));
@@ -201,18 +193,11 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 					element.setBranchingType(this.getBranchingTypeForString(String.valueOf(value.getValue())));
 					break;
 				case "condition":
-					element.setCondition(String.valueOf(value));
-					element.setMessage(String.valueOf(value));
+					element.setCondition(this.resolvePropertyValue(String.valueOf(value)));
+					element.setMessage(element.getCondition());
 					break;
 				case "diagramIdentifiers":
-					List<String> identifiers = value.getValue() instanceof List ?
-											   (List<String>) value.getValue() :
-											   new ArrayList<>();
-					if (identifiers.size() == 1) {
-						element.setDiagramIdentifiers(new String[]{String.valueOf(identifiers.get(0))});
-					} else {
-						element.setDiagramIdentifiers(identifiers.stream().map(String::valueOf).toArray(String[]::new));
-					}
+					element.setDiagramIdentifiers(parseDiagramIdentifiers(value));
 					break;
 			}
 		});
@@ -226,6 +211,19 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return ActionType.valueOf(inputString);
 	}
 
+	private String[] parseDiagramIdentifiers(AnnotationValue identifiersAnnotationValue) {
+		List<String> identifiers = identifiersAnnotationValue.getValue() instanceof List ?
+								   (List<String>) identifiersAnnotationValue.getValue() :
+								   new ArrayList<>();
+		if (identifiers.size() == 1) {
+			return new String[]{this.resolvePropertyValue(String.valueOf(identifiers.get(0)))};
+		} else {
+			return identifiers.stream().map(String::valueOf)
+							  .map(this::resolvePropertyValue)
+							  .toArray(String[]::new);
+		}
+	}
+
 	private BranchingType getBranchingTypeForString(String inputString) {
 		if (inputString == null || inputString.isEmpty()) {
 			return BranchingType.MAIN;
@@ -236,5 +234,10 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	private void createDiagrams() {
 		ObjectSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
 		diagramCache.getDiagramsMap().forEach((key, value) -> VisualDiagramGenerator.generateImageFromPlantUmlString(value.toPlantUmlString(), key));
+	}
+
+	private String resolvePropertyValue(String key) {
+		key = key != null ? key.replace("\"","").trim() : null;
+		return properties != null && key != null ? properties.getProperty(key) : key;
 	}
 }

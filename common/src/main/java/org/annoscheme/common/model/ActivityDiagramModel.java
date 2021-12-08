@@ -31,27 +31,28 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		plantUmlStringBuilder.append(START_UML);
 		plantUmlStringBuilder.append(startElement.toPlantUmlString());
 		DiagramElement current = startElement;
-		boolean done = false;
+		boolean reachedEndState = false;
 		//TODO sentinel the processing
-		while (!done) {
+		while (!reachedEndState) {
 			DiagramElement finalCurrent = current;
-			current = diagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().get();
+			current = diagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().orElse(null);
 			if (current instanceof ConditionalDiagramElement) {
 				ConditionalDiagramElement currentConditional = (ConditionalDiagramElement) current;
 				plantUmlStringBuilder.append("if (")
 									 .append(currentConditional.getCondition())
 									 .append(") ")
-						.append("then ").append("(true) \n");
+						.append("then ").append("([true]) \n");
 				//get main branch
 				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getMainFlowDirectChild()));
-				plantUmlStringBuilder.append("else (").append("false").append(") \n");
+				plantUmlStringBuilder.append("else (").append("[false]").append(") \n");
+				//get alternative branch
 				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getAlternateFlowDirectChild()));
-				done = true;
+				reachedEndState = true;
 			} else {
 				plantUmlStringBuilder.append(current.toPlantUmlString());
 			}
 			if (current.getActionType().equals(ActionType.END)) {
-				done = true;
+				reachedEndState = true;
 			}
 		}
 		plantUmlStringBuilder.append(END_UML);
