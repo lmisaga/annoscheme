@@ -79,7 +79,6 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		List<DiagramElement> sortedElements = this.getDiagramElements();
 		//find parent if not empty, then indexOf parent -> add after parent
 		if (sortedElements.isEmpty()) {
-			element.setParentElement(null);
 			sortedElements.add(element);
 			return;
 		}

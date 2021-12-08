@@ -12,13 +12,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_END;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_START;
 
-public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
+public class DiagramElement implements PlantUmlIntegrable, UmlParseable, Cloneable {
 
 	private String message;
 
 	private String parentMessage;
-
-	private DiagramElement parentElement;
 
 	private ActionType actionType = ActionType.ACTION;
 
@@ -87,11 +85,12 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable {
 		this.parentMessage = trimAndReplaceQuotes(parentMessage);
 	}
 
-	public DiagramElement getParentElement() {
-		return parentElement;
-	}
-
-	public void setParentElement(DiagramElement parentElement) {
-		this.parentElement = parentElement;
+	@Override
+	public DiagramElement clone() {
+		try {
+			return (DiagramElement) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new AssertionError();
+		}
 	}
 }

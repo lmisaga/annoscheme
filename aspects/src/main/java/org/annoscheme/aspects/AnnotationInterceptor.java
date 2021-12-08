@@ -2,6 +2,7 @@ package org.annoscheme.aspects;
 
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
+import org.annoscheme.common.annotation.Actions;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
@@ -28,23 +29,48 @@ public class AnnotationInterceptor {
 
 	private Integer executionCount = 1;
 
-	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation) ")
-	public Object annotation(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
-		ActivityDiagramModel currentDiagram = (ActivityDiagramModel) diagramsMap.values().toArray()[0];
-		logger.info(actionAnnotation);
+	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation)")
+	public Object actionAnnotationAdvice(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
+		ActivityDiagramModel currentDiagram = diagramsMap.get(actionAnnotation.diagramIdentifiers()[0]).clone();
+		logger.debug(actionAnnotation);
 		Object joinPointResult = joinPoint.proceed();
 		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
 			this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), actionAnnotation, joinPoint);
 		}
 		if (joinPointResult != null) { // joinpoint is a method call
-			this.createObjectAndGenerateDiagram(new ActivityDiagramModel(currentDiagram), joinPointResult, actionAnnotation);
+			this.createObjectAndGenerateDiagram(currentDiagram.clone(), joinPointResult, actionAnnotation);
 		}
 		return joinPointResult;
 	}
 
+	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionsAnnotation)")
+	public Object actionsAnnotationAdvice(ProceedingJoinPoint joinPoint, Actions actionsAnnotation) throws Throwable {
+		//TODO not working properly for multiple annotations
+		//		ActivityDiagramModel currentDiagram = diagramsMap.get("1").clone();
+		//		for (Action action : actionsAnnotation.value()) {
+		//			if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
+		//				this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), action, joinPoint);
+		//			}
+		//			if (joinPointResult != null) { // joinpoint is a method call
+		//				this.createObjectAndGenerateDiagram(currentDiagram.clone(), joinPointResult, action);
+		//			}
+		//		}
+		return joinPoint.proceed();
+	}
+
+	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
+		DiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
+		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
+	}
+
+	private void createObjectAndGenerateDiagramFromJoinPoint(ActivityDiagramModel currentDiagram, Action actionAnnotation, JoinPoint joinPoint) {
+		DiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
+		this.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
+	}
+
 	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, DiagramElement objectElement) {
-		Optional<DiagramElement> element = null;
-		Optional<DiagramElement> successorOptional = null;
+		Optional<DiagramElement> element;
+		Optional<DiagramElement> successorOptional;
 		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(actionAnnotation.message())).findFirst();
 		if (element.isPresent()) {
 			DiagramElement currentElement = element.get();
@@ -56,25 +82,14 @@ public class AnnotationInterceptor {
 				successorElement.setParentMessage(objectElement.getMessage());
 				//successor is present, that means object element is going to be placed within the diagram
 			} else {
-				logger.debug("No successor");
 				currentElement.setActionType(ActionType.ACTION);
 				objectElement.setActionType(ActionType.END);
 				//there is no successor, which means that currentElement should be ActionType.END -> ActionType needs to be altered, along with
 			}
 			currentDiagram.addElement(objectElement);
-			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), "test" + executionCount);
+			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), currentDiagram.getDiagramIdentifier() + "_run_" + executionCount);
 		}
 		executionCount++;
-	}
-
-	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
-		DiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
-		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
-	}
-
-	private void createObjectAndGenerateDiagramFromJoinPoint(ActivityDiagramModel currentDiagram, Action actionAnnotation, JoinPoint joinPoint) {
-		DiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
-		this.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
 	private DiagramElement createObjectDiagramElementFromResult(Object joinPointResult) throws Throwable {

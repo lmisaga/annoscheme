@@ -30,7 +30,6 @@ public class RestockOrderRepository {
 	@Action(actionType = ActionType.END, message="Save restock order", diagramIdentifiers = {"1"}, parentMessage = "Create restock order")
 	@Action(actionType = ActionType.END, message = "Save restock order", diagramIdentifiers = {"2"}, parentMessage = "Cancel restock order")
 	public RestockOrder insertRestockOrder(RestockOrder restockOrder) {
-		System.out.println("insertRestockOrder");
 		this.restockOrdersMockStorage.add(restockOrder);
 		return restockOrder;
 	}
