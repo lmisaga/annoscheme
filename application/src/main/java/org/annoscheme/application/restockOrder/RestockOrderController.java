@@ -21,4 +21,9 @@ public class RestockOrderController {
 		return restockOrderService.createRestockOrder(parseRequest(inputArguments));
 	}
 
+	@Action(actionType = ActionType.START, message="Cancel restock order request received", diagramIdentifiers = {"2"})
+	public void cancelRestockOrder(Integer restockOrderId) {
+		restockOrderService.cancelRestockOrder(restockOrderId);
+	}
+
 }

@@ -14,15 +14,13 @@ public class VisualDiagramGenerator {
 
 	public static void generateImageFromPlantUmlString(String plantUmlString, String fileName) {
 		try {
-			//TODO create separate reusable service for writing images
 			String imageFileName = "img/" + fileName + ".png";
 			OutputStream os = new FileOutputStream(imageFileName);
 			SourceStringReader reader = new SourceStringReader(plantUmlString);
-			logger.info("Saving image " + fileName);
-			String desc = reader.generateImage(os);
+			logger.info("Saving diagram image " + fileName);
+			reader.generateImage(os);
 		} catch (IOException | NoSuchElementException e) {
 			logger.error("Error while generating image: " + e.getMessage());
-
 		}
 	}
 

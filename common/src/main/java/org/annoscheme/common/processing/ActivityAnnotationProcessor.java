@@ -4,7 +4,6 @@ import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
-import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
 import org.annoscheme.common.model.element.ConditionalDiagramElement;
@@ -18,11 +17,13 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 
 import com.google.auto.service.AutoService;
 
-@SupportedAnnotationTypes({"org.annoscheme.common.annotation.Action"})
+@SupportedAnnotationTypes({"org.annoscheme.common.annotation.Action", "org.annoscheme.common.annotation.Actions"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class ActivityAnnotationProcessor extends AbstractProcessor {
@@ -48,7 +49,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		try (InputStream input = ActivityAnnotationProcessor.class.getResourceAsStream(PROPERTIES_PATH)) {
 			Properties properties = new Properties();
 			properties.load(input);
-			System.out.println(properties);
 			return properties;
 
 		} catch (Exception io) {
@@ -65,17 +65,24 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			for (TypeElement annotation : annotations) {
 				Set<ExecutableElement> annotatedElements = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(annotation);
 				if (!annotatedElements.isEmpty()) {
-					ActivityDiagramModel diagram = new ActivityDiagramModel();
 					annotatedElements.forEach(annotatedElement -> {
 						//annotated element with @Action might have more of annotation mirrors
 						List<? extends AnnotationMirror> annotationMirrors = annotatedElement.getAnnotationMirrors();
+						List<? extends AnnotationMirror> actionsValues = new ArrayList<>();
+						if (!annotationMirrors.isEmpty() && annotationMirrors.get(0).getAnnotationType().asElement()
+																			 .getSimpleName().toString().equals("Actions")) {
+							actionsValues = parseIndividualActions(annotationMirrors.get(0));
+						}
 						try {
-							this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors);
+							if (!actionsValues.isEmpty()) {
+								this.parseDiagramElementsFromAnnotationMirrors(actionsValues);
+							} else {
+								this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors);
+							}
 						} catch (NoSuchElementException ex) {
 							ex.printStackTrace();
 						}
 					});
-					diagramCache.addDiagramToCache(diagram);
 				}
 			}
 			this.createDiagrams();
@@ -83,46 +90,68 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return true;
 	}
 
-	//TODO update to accommodate more than one diagram
-	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
-		ActivityDiagramModel diagramModel = new ActivityDiagramModel();
-		annotationMirrors = filterMirrorsForActionAnnotations(annotationMirrors);
-		//if mirrors > 1, then conditional must be present
-		if (annotationMirrors.size() == 1) {
-			if (annotationMirrors.get(0).getAnnotationType().asElement().getSimpleName().toString().equals(AnnotationConstants.CONDITIONAL_NAME)) {
-				throw new IllegalStateException("@Conditional must appear with @Action!");
-			}
-			DiagramElement elementToAdd = this.parseActivityDiagramElement(annotationMirrors.get(0));
-			this.diagramCache.addElementToDiagramByIdentifier(elementToAdd);
-		} else {
-			Optional<? extends AnnotationMirror> actionMirror = annotationMirrors.stream()
-																				 .filter(mirror -> mirror.getAnnotationType()
-																										 .asElement()
-																										 .getSimpleName().toString()
-																										 .equals(AnnotationConstants.ACTION_NAME))
-																				 .findFirst();
-			Optional<? extends AnnotationMirror> conditionalMirror = annotationMirrors.stream()
-																					  .filter(mirror -> mirror.getAnnotationType()
-																											  .asElement()
-																											  .getSimpleName().toString()
-																											  .equals(AnnotationConstants.CONDITIONAL_NAME))
-																					  .findFirst();
-			if (actionMirror.isPresent() && conditionalMirror.isPresent()) {
-				DiagramElement elementToAdd = this.parseActivityDiagramElement(actionMirror.get());
-				ConditionalDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
-				if (BranchingType.MAIN.equals(conditionalElementToAdd.getBranchingType())) {
-					conditionalElementToAdd.setMainFlowDirectChild(elementToAdd);
-				} else {
-					conditionalElementToAdd.setAlternateFlowDirectChild(elementToAdd);
-				}
-				conditionalElementToAdd.setParentMessage(elementToAdd.getParentMessage());
-				conditionalElementToAdd.setDiagramIdentifiers(elementToAdd.getDiagramIdentifiers());
-				this.diagramCache.addElementToDiagramByIdentifier(conditionalElementToAdd);
-				elementToAdd.setParentMessage(conditionalElementToAdd.getMessage());
-				this.diagramCache.addElementToDiagramByIdentifier(elementToAdd);
-			}
+	public List<? extends AnnotationMirror> parseIndividualActions(AnnotationMirror annotation) {
+		List<AnnotationMirror> parsedActions = new ArrayList<>();
+		for (ExecutableElement executableElement : annotation.getElementValues().keySet()) {
+			ArrayList<AnnotationValue> annotValues = new ArrayList<>(
+					(Collection<? extends AnnotationValue>) annotation.getElementValues().get(executableElement).getValue());
+			parsedActions.addAll(annotValues.stream().map(annotationValue -> (AnnotationMirror)annotationValue.getValue()).collect(Collectors.toList()));
 
 		}
+		return parsedActions;
+	}
+
+	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
+		annotationMirrors = filterMirrorsForActionAnnotations(annotationMirrors);
+		//TODO change this, not valid for multiple @Action-s
+		if (annotationMirrors.size() == 1 && annotationMirrors.get(0).getAnnotationType()
+															  .asElement().getSimpleName().toString()
+															  .equals(AnnotationConstants.CONDITIONAL_NAME)) {
+			throw new IllegalStateException("@Conditional must appear with @Action!");
+		}
+
+		List<? extends AnnotationMirror> actionMirrors = annotationMirrors
+				.stream()
+				.filter(mirror -> mirror.getAnnotationType()
+										.asElement()
+										.getSimpleName().toString()
+										.equals(AnnotationConstants.ACTION_NAME))
+				.collect(Collectors.toList());
+		Optional<? extends AnnotationMirror> conditionalMirror = annotationMirrors
+				.stream()
+				.filter(mirror -> mirror.getAnnotationType()
+										.asElement()
+										.getSimpleName().toString()
+										.equals(AnnotationConstants.CONDITIONAL_NAME))
+				.findFirst();
+		if (!actionMirrors.isEmpty()) {
+			List<DiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
+			if (conditionalMirror.isPresent()) {
+				DiagramElement elementToAdd;
+				ConditionalDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
+				if (actionElementsToAdd.stream().anyMatch(element -> Arrays.equals(element.getDiagramIdentifiers(),
+																				   conditionalElementToAdd.getDiagramIdentifiers()))) {
+					//TODO check this
+					elementToAdd = actionElementsToAdd.stream()
+													  .filter(element -> Arrays.equals(element.getDiagramIdentifiers(),
+																					   conditionalElementToAdd.getDiagramIdentifiers())).findFirst().get();
+					if (BranchingType.MAIN.equals(conditionalElementToAdd.getBranchingType())) {
+						conditionalElementToAdd.setMainFlowDirectChild(elementToAdd);
+					} else {
+						conditionalElementToAdd.setAlternateFlowDirectChild(elementToAdd);
+					}
+					conditionalElementToAdd.setParentMessage(elementToAdd.getParentMessage());
+					conditionalElementToAdd.setDiagramIdentifiers(elementToAdd.getDiagramIdentifiers());
+					this.diagramCache.addElementToDiagramByIdentifier(conditionalElementToAdd);
+					elementToAdd.setParentMessage(conditionalElementToAdd.getMessage());
+					this.diagramCache.addElementToDiagramByIdentifier(elementToAdd);
+					actionElementsToAdd.remove(elementToAdd);
+				}
+			}
+			actionElementsToAdd.forEach(this.diagramCache::addElementToDiagramByIdentifier);
+		}
+
+
 	}
 
 	private List<? extends AnnotationMirror> filterMirrorsForActionAnnotations(List<? extends AnnotationMirror> annotationMirrors) {
@@ -175,6 +204,16 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 					element.setCondition(String.valueOf(value));
 					element.setMessage(String.valueOf(value));
 					break;
+				case "diagramIdentifiers":
+					List<String> identifiers = value.getValue() instanceof List ?
+											   (List<String>) value.getValue() :
+											   new ArrayList<>();
+					if (identifiers.size() == 1) {
+						element.setDiagramIdentifiers(new String[]{String.valueOf(identifiers.get(0))});
+					} else {
+						element.setDiagramIdentifiers(identifiers.stream().map(String::valueOf).toArray(String[]::new));
+					}
+					break;
 			}
 		});
 		return element;
@@ -195,11 +234,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private void createDiagrams() {
-		String[] diagramIdentifiers = this.diagramCache.getDiagramsMap().keySet().toArray(new String[0]);
-//		ActivityDiagramModel model = DiagramModelCache.getInstance().getActivityDiagrams().get(0);
 		ObjectSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
-		//TODO remove, test
-		HashMap<String, ActivityDiagramModel> test = ObjectSerializer.deserializeCachedDiagramsMap();
-		VisualDiagramGenerator.generateImageFromPlantUmlString(test.get(diagramIdentifiers[0]).toPlantUmlString(), "1");
+		diagramCache.getDiagramsMap().forEach((key, value) -> VisualDiagramGenerator.generateImageFromPlantUmlString(value.toPlantUmlString(), key));
 	}
 }

@@ -32,6 +32,7 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		plantUmlStringBuilder.append(startElement.toPlantUmlString());
 		DiagramElement current = startElement;
 		boolean done = false;
+		//TODO sentinel the processing
 		while (!done) {
 			DiagramElement finalCurrent = current;
 			current = diagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().get();

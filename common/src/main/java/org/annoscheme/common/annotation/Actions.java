@@ -7,12 +7,8 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Conditional {
+public @interface Actions {
 
-	String condition() default "";
-
-	BranchingType type();
-
-	String[] diagramIdentifiers() default {};
+	Action[] value();
 
 }

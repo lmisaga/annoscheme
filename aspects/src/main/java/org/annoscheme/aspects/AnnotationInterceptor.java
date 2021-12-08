@@ -1,14 +1,17 @@
 package org.annoscheme.aspects;
 
 import org.annoscheme.common.annotation.Action;
+import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.element.DiagramElement;
 import org.apache.log4j.Logger;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.ConstructorSignature;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -25,50 +28,56 @@ public class AnnotationInterceptor {
 
 	private Integer executionCount = 1;
 
-	@Around("execution(* *(..)) && @annotation(actionAnnotation)")
+	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation) ")
 	public Object annotation(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
 		ActivityDiagramModel currentDiagram = (ActivityDiagramModel) diagramsMap.values().toArray()[0];
-		Object joinPointResult = joinPoint.proceed();
-		if (joinPointResult == null) {
-			return null;
-		}
 		logger.info(actionAnnotation);
-		this.createObjectAndGenerateDiagram(new ActivityDiagramModel(currentDiagram), joinPointResult, actionAnnotation);
+		Object joinPointResult = joinPoint.proceed();
+		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
+			this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), actionAnnotation, joinPoint);
+		}
+		if (joinPointResult != null) { // joinpoint is a method call
+			this.createObjectAndGenerateDiagram(new ActivityDiagramModel(currentDiagram), joinPointResult, actionAnnotation);
+		}
 		return joinPointResult;
 	}
 
-	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
-		DiagramElement objectElement = createObjectDiagramElement(joinPointResult);
+	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, DiagramElement objectElement) {
 		Optional<DiagramElement> element = null;
 		Optional<DiagramElement> successorOptional = null;
 		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(actionAnnotation.message())).findFirst();
 		if (element.isPresent()) {
 			DiagramElement currentElement = element.get();
 			successorOptional = currentDiagram.getDiagramElements().stream().filter(x -> x.getParentMessage().equals(currentElement.getMessage())).findFirst();
+			objectElement.setParentMessage(currentElement.getMessage());
+			objectElement.setDiagramIdentifiers(currentElement.getDiagramIdentifiers());
 			if (successorOptional.isPresent()) {
-				objectElement.setParentMessage(currentElement.getMessage());
 				DiagramElement successorElement = successorOptional.get();
 				successorElement.setParentMessage(objectElement.getMessage());
-				currentDiagram.addElement(objectElement);
-				objectElement.setDiagramIdentifiers(currentElement.getDiagramIdentifiers());
 				//successor is present, that means object element is going to be placed within the diagram
-
 			} else {
 				logger.debug("No successor");
+				currentElement.setActionType(ActionType.ACTION);
+				objectElement.setActionType(ActionType.END);
 				//there is no successor, which means that currentElement should be ActionType.END -> ActionType needs to be altered, along with
 			}
+			currentDiagram.addElement(objectElement);
 			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), "test" + executionCount);
 		}
 		executionCount++;
-		// get successor and current element
-		// create object diagram
-		//append object diagram to the diagram after element but before predecessor
-		//generate activity diagram with this object
-		//done
-
 	}
 
-	private DiagramElement createObjectDiagramElement(Object joinPointResult) throws Throwable {
+	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
+		DiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
+		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
+	}
+
+	private void createObjectAndGenerateDiagramFromJoinPoint(ActivityDiagramModel currentDiagram, Action actionAnnotation, JoinPoint joinPoint) {
+		DiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
+		this.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
+	}
+
+	private DiagramElement createObjectDiagramElementFromResult(Object joinPointResult) throws Throwable {
 		DiagramElement objectElement = new DiagramElement();
 		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPointResult.getClass().getSimpleName() + "</b>\n");
 		Field[] fields = joinPointResult.getClass().getDeclaredFields();
@@ -80,6 +89,26 @@ public class AnnotationInterceptor {
 									.append(field.getType().getSimpleName()).append(" = ").append(field.get(joinPointResult))
 									.append("\n");
 			}
+		}
+		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
+		objectElement.setMessage(objectMessageBuilder.toString().trim());
+		return objectElement;
+	}
+
+	private DiagramElement createObjectDiagramElement(JoinPoint joinPoint) {
+		DiagramElement objectElement = new DiagramElement();
+		ConstructorSignature signature = (ConstructorSignature) joinPoint.getSignature();
+		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPoint.getTarget().getClass().getSimpleName() + "</b>\n");
+		Object[] arguments = joinPoint.getArgs();
+		String[] parameterNames = signature.getParameterNames();
+		Class<?>[] parameterTypes = signature.getParameterTypes();
+
+		for (int i = 0; i < signature.getParameterNames().length; ++i) {
+			objectMessageBuilder.append(parameterNames[i])
+								.append(": ")
+								.append(parameterTypes[i].getSimpleName()).append(" = ")
+								.append(arguments[i].toString())
+								.append("\n");
 		}
 		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
 		objectElement.setMessage(objectMessageBuilder.toString().trim());

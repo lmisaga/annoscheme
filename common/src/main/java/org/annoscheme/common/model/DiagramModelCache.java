@@ -2,22 +2,17 @@ package org.annoscheme.common.model;
 
 import org.annoscheme.common.model.element.DiagramElement;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 public class DiagramModelCache {
 
 	private static DiagramModelCache instance = null;
 
-	private List<ActivityDiagramModel> activityDiagrams;
-
 	//<key, value> pairs of <diagramIdentifier, diagramModel>
-	private HashMap<String, ActivityDiagramModel> diagramsMap;
+	private final HashMap<String, ActivityDiagramModel> diagramsMap;
 
 	private DiagramModelCache() {
-		this.activityDiagrams = new ArrayList<>();
 		this.diagramsMap = new HashMap<>();
 	}
 
@@ -61,7 +56,7 @@ public class DiagramModelCache {
 	}
 
 	public ActivityDiagramModel getModelByDiagramIdentifier(String identifier) {
-		ActivityDiagramModel model = this.diagramsMap != null ? this.diagramsMap.get(identifier) : null;
+		ActivityDiagramModel model = this.diagramsMap.get(identifier);
 		if (model == null) {
 			model = new ActivityDiagramModel(identifier);
 			this.addDiagramToCache(model);
@@ -71,10 +66,6 @@ public class DiagramModelCache {
 
 	public HashMap<String, ActivityDiagramModel> getDiagramsMap() {
 		return diagramsMap;
-	}
-
-	public List<ActivityDiagramModel> getActivityDiagrams() {
-		return activityDiagrams;
 	}
 
 }

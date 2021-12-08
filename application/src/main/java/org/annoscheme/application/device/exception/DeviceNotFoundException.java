@@ -12,7 +12,7 @@ public class DeviceNotFoundException extends RuntimeException {
 
 	@Action(message = "Log failed attempt to create Restock order", actionType = ActionType.END, parentMessage = "Find device by ID",
 			diagramIdentifiers = {"1"})
-	@Conditional(type = BranchingType.ALTERNATIVE, condition = "Found device?")
+	@Conditional(type = BranchingType.ALTERNATIVE, condition = "Found device?", diagramIdentifiers = {"1"})
 	public DeviceNotFoundException(String message) {
 		logger.error(message);
 	}

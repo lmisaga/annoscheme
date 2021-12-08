@@ -19,6 +19,7 @@ public class RestockOrderRepository {
 		));
 	}
 
+	@Action(message = "Find restock order by ID", actionType = ActionType.ACTION, diagramIdentifiers = {"2"}, parentMessage = "Cancel restock order request received")
 	public RestockOrder findRestockOrderById(Integer restockOrderId) {
 		return this.restockOrdersMockStorage.stream()
 											.filter(r -> r.getId().equals(restockOrderId))
@@ -26,10 +27,8 @@ public class RestockOrderRepository {
 											.orElse(null);
 	}
 
-	@Action(actionType = ActionType.END,
-			message="Save restock order",
-			diagramIdentifiers = {"1"},
-			parentMessage = "Create restock order")
+	@Action(actionType = ActionType.END, message="Save restock order", diagramIdentifiers = {"1"}, parentMessage = "Create restock order")
+	@Action(actionType = ActionType.END, message = "Save restock order", diagramIdentifiers = {"2"}, parentMessage = "Cancel restock order")
 	public RestockOrder insertRestockOrder(RestockOrder restockOrder) {
 		System.out.println("insertRestockOrder");
 		this.restockOrdersMockStorage.add(restockOrder);
