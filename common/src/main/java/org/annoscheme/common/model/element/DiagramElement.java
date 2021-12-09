@@ -44,6 +44,7 @@ public class DiagramElement implements PlantUmlIntegrable, UmlParseable, Cloneab
 		plantUmlMessage.append(":").append(trimAndReplaceQuotes(message));
 		if (message.endsWith("]")) {
 			plantUmlMessage.append("\n");
+			plantUmlMessage.insert(0, "#lightblue");
 		} else {
 			plantUmlMessage.append(";\n");
 		}

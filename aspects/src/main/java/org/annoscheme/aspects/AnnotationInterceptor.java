@@ -14,24 +14,45 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.ConstructorSignature;
 
+import java.io.InputStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Properties;
 
 @Aspect
 public class AnnotationInterceptor {
+
+	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
 
 	private static final Logger logger = Logger.getLogger(AnnotationInterceptor.class);
 
 	private HashMap<String, ActivityDiagramModel> diagramsMap = ObjectSerializer.deserializeCachedDiagramsMap();
 
+	private static final Properties properties = initProperties();
+
+	private static Properties initProperties() {
+		try (InputStream input = AnnotationInterceptor.class.getResourceAsStream(PROPERTIES_PATH)) {
+			Properties properties = new Properties();
+			properties.load(input);
+			return properties;
+
+		} catch (Exception io) {
+			logger.error("Properties could not be initialized due to " + io.getMessage() + " -> Defaulting to string annotation value definitions");
+			io.printStackTrace();
+		}
+		return null;
+	}
+
 	private Integer executionCount = 1;
 
 	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation)")
 	public Object actionAnnotationAdvice(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
-		ActivityDiagramModel currentDiagram = diagramsMap.get(actionAnnotation.diagramIdentifiers()[0]).clone();
+		String resolvedIdentifier = resolvePropertyValue(actionAnnotation.diagramIdentifiers()[0]);
+		ActivityDiagramModel currentDiagram = diagramsMap.get(resolvedIdentifier).clone();
+
 		logger.debug(actionAnnotation);
 		Object joinPointResult = joinPoint.proceed();
 		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
@@ -60,6 +81,7 @@ public class AnnotationInterceptor {
 
 	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
 		DiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
+//		objectElement.setDiagramIdentifiers(new String[]{resolvePropertyValue(currentDiagram.getDiagramIdentifier())});
 		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
@@ -71,10 +93,12 @@ public class AnnotationInterceptor {
 	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, DiagramElement objectElement) {
 		Optional<DiagramElement> element;
 		Optional<DiagramElement> successorOptional;
-		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(actionAnnotation.message())).findFirst();
+		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(resolvePropertyValue(actionAnnotation.message()))).findFirst();
 		if (element.isPresent()) {
 			DiagramElement currentElement = element.get();
-			successorOptional = currentDiagram.getDiagramElements().stream().filter(x -> x.getParentMessage().equals(currentElement.getMessage())).findFirst();
+			successorOptional = currentDiagram.getDiagramElements().stream()
+											  .filter(x -> x.getParentMessage().equals(currentElement.getMessage()))
+											  .findFirst();
 			objectElement.setParentMessage(currentElement.getMessage());
 			objectElement.setDiagramIdentifiers(currentElement.getDiagramIdentifiers());
 			if (successorOptional.isPresent()) {
@@ -87,7 +111,8 @@ public class AnnotationInterceptor {
 				//there is no successor, which means that currentElement should be ActionType.END -> ActionType needs to be altered, along with
 			}
 			currentDiagram.addElement(objectElement);
-			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(), currentDiagram.getDiagramIdentifier() + "_run_" + executionCount);
+			VisualDiagramGenerator.generateImageFromPlantUmlString(currentDiagram.toPlantUmlString(),
+																   currentDiagram.getDiagramIdentifier() + "_run_" + executionCount);
 		}
 		executionCount++;
 	}
@@ -128,5 +153,10 @@ public class AnnotationInterceptor {
 		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
 		objectElement.setMessage(objectMessageBuilder.toString().trim());
 		return objectElement;
+	}
+
+	private String resolvePropertyValue(String key) {
+		key = key != null ? key.replace("\"","").trim() : null;
+		return properties != null && key != null ? properties.getProperty(key) : key;
 	}
 }
