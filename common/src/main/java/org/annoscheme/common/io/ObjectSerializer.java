@@ -14,9 +14,18 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 public class ObjectSerializer {
 
+	private static final String DIR_PATH = "/output-storage";
+
 	private static final String DIAGRAM_CACHE_PATH = "diagram-cache.json";
 
 	private static final ObjectMapper objectMapper = initializeObjectMapper();
+
+	static {
+		File directory = new File(DIR_PATH);
+		if (! directory.exists()){
+			directory.mkdir();
+		}
+	}
 
 	private static ObjectMapper initializeObjectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -38,6 +47,15 @@ public class ObjectSerializer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void serializeCachedDiagramsToPlantUml(HashMap<String, ActivityDiagramModel> diagramMap) {
+		String str = "Hello";
+		//			FileOutputStream outputStream = new FileOutputStream(fileName);
+		byte[] strToBytes = str.getBytes();
+		//			outputStream.write(strToBytes);
+
+		//			outputStream.close();
 	}
 
 	public static HashMap<String, ActivityDiagramModel> deserializeCachedDiagramsMap() {

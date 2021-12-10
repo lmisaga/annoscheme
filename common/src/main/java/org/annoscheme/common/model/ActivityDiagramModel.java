@@ -2,8 +2,8 @@ package org.annoscheme.common.model;
 
 import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
-import org.annoscheme.common.model.element.ConditionalDiagramElement;
-import org.annoscheme.common.model.element.DiagramElement;
+import org.annoscheme.common.model.element.ActivityDiagramElement;
+import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,26 +18,26 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 
 	private String diagramIdentifier;
 
-	private List<DiagramElement> diagramElements = new ArrayList<>();
+	private List<ActivityDiagramElement> activityDiagramElements = new ArrayList<>();
 
 	@Override
 	@JsonIgnore
 	public String toPlantUmlString() {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
-		DiagramElement startElement = diagramElements.stream().filter(x -> x.getActionType().equals(ActionType.START)).findFirst().orElse(null);
+		ActivityDiagramElement startElement = activityDiagramElements.stream().filter(x -> x.getActionType().equals(ActionType.START)).findFirst().orElse(null);
 		if (startElement == null) {
 			throw new IllegalStateException("Diagram has no starting element");
 		}
 		plantUmlStringBuilder.append(START_UML);
 		plantUmlStringBuilder.append(startElement.toPlantUmlString());
-		DiagramElement current = startElement;
+		ActivityDiagramElement current = startElement;
 		boolean reachedEndState = false;
 		//TODO sentinel the processing
 		while (!reachedEndState) {
-			DiagramElement finalCurrent = current;
-			current = diagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().orElse(null);
-			if (current instanceof ConditionalDiagramElement) {
-				ConditionalDiagramElement currentConditional = (ConditionalDiagramElement) current;
+			ActivityDiagramElement finalCurrent = current;
+			current = activityDiagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().orElse(null);
+			if (current instanceof ConditionalActivityDiagramElement) {
+				ConditionalActivityDiagramElement currentConditional = (ConditionalActivityDiagramElement) current;
 				plantUmlStringBuilder.append("if (")
 									 .append(currentConditional.getCondition())
 									 .append(") ")
@@ -59,25 +59,25 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		return plantUmlStringBuilder.toString();
 	}
 
-	private String getPlantUmlConditionalBranch(DiagramElement fromElement) {
+	private String getPlantUmlConditionalBranch(ActivityDiagramElement fromElement) {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
-		DiagramElement current = fromElement;
+		ActivityDiagramElement current = fromElement;
 		plantUmlStringBuilder.append(current.toPlantUmlString());
 		while (!current.getActionType().equals(ActionType.END)) {
-			DiagramElement finalCurrent = current;
-			DiagramElement child = diagramElements.stream()
-												  .filter(x -> x.getParentMessage() != null &&
+			ActivityDiagramElement finalCurrent = current;
+			ActivityDiagramElement child = activityDiagramElements.stream()
+																  .filter(x -> x.getParentMessage() != null &&
 															   x.getParentMessage().equalsIgnoreCase(finalCurrent.getMessage().toLowerCase()))
-												  .findFirst()
-												  .get();
+																  .findFirst()
+																  .get();
 			plantUmlStringBuilder.append(child.toPlantUmlString());
 			current = child;
 		}
 		return plantUmlStringBuilder.toString();
 	}
 
-	public void addElement(DiagramElement element) {
-		List<DiagramElement> sortedElements = this.getDiagramElements();
+	public void addElement(ActivityDiagramElement element) {
+		List<ActivityDiagramElement> sortedElements = this.getDiagramElements();
 		//find parent if not empty, then indexOf parent -> add after parent
 		if (sortedElements.isEmpty()) {
 			sortedElements.add(element);
@@ -92,20 +92,20 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 			}
 		}
 
-		ConditionalDiagramElement conditionalElement;
-		if (element instanceof ConditionalDiagramElement) {
-			conditionalElement = (ConditionalDiagramElement) element;
+		ConditionalActivityDiagramElement conditionalElement;
+		if (element instanceof ConditionalActivityDiagramElement) {
+			conditionalElement = (ConditionalActivityDiagramElement) element;
 			//lookup if conditional with same condition does not exist already, if yes update with new branch
-			Optional<DiagramElement> existingConditionalOptional = sortedElements
+			Optional<ActivityDiagramElement> existingConditionalOptional = sortedElements
 					.stream()
-					.filter(x -> x instanceof ConditionalDiagramElement &&
-								 ((ConditionalDiagramElement) x).getCondition().equalsIgnoreCase(conditionalElement.getCondition().toLowerCase()) &&
+					.filter(x -> x instanceof ConditionalActivityDiagramElement &&
+								 ((ConditionalActivityDiagramElement) x).getCondition().equalsIgnoreCase(conditionalElement.getCondition().toLowerCase()) &&
 								 x.getParentMessage().equalsIgnoreCase(conditionalElement.getParentMessage().toLowerCase()))
 					.findFirst();
 			//if existing, update it's branches
 			if (existingConditionalOptional.isPresent()) {
 				//there already is existing conditional with same condition -> update main/alt branch
-				ConditionalDiagramElement existingConditional = (ConditionalDiagramElement) existingConditionalOptional.get();
+				ConditionalActivityDiagramElement existingConditional = (ConditionalActivityDiagramElement) existingConditionalOptional.get();
 				if (conditionalElement.getAlternateFlowDirectChild() != null && existingConditional.getAlternateFlowDirectChild() == null) {
 					existingConditional.setAlternateFlowDirectChild(conditionalElement.getAlternateFlowDirectChild());
 				} else {
@@ -117,12 +117,12 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 			}
 		}
 		//find parent
-		Optional<DiagramElement> parentElement = sortedElements.stream()
-															   .filter(x -> x.getMessage().equalsIgnoreCase(element.getParentMessage().toLowerCase()))
-															   .findFirst();
+		Optional<ActivityDiagramElement> parentElement = sortedElements.stream()
+																	   .filter(x -> x.getMessage().equalsIgnoreCase(element.getParentMessage().toLowerCase()))
+																	   .findFirst();
 
 		if (parentElement.isPresent()) {
-			DiagramElement foundParentElement = parentElement.get();
+			ActivityDiagramElement foundParentElement = parentElement.get();
 			sortedElements.add(sortedElements.indexOf(foundParentElement) + 1, element);
 		} else {
 			sortedElements.add(element);
@@ -134,13 +134,13 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 	public ActivityDiagramModel() {
 	}
 
-	public ActivityDiagramModel(String diagramIdentifier, List<DiagramElement> diagramElements) {
+	public ActivityDiagramModel(String diagramIdentifier, List<ActivityDiagramElement> activityDiagramElements) {
 		this.diagramIdentifier = diagramIdentifier;
-		this.diagramElements = diagramElements;
+		this.activityDiagramElements = activityDiagramElements;
 	}
 
 	public ActivityDiagramModel(ActivityDiagramModel model) {
-		this.diagramElements = model.getDiagramElements();
+		this.activityDiagramElements = model.getDiagramElements();
 		this.diagramIdentifier = model.getDiagramIdentifier();
 	}
 
@@ -156,12 +156,12 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		this.diagramIdentifier = diagramIdentifier;
 	}
 
-	public List<DiagramElement> getDiagramElements() {
-		return diagramElements;
+	public List<ActivityDiagramElement> getDiagramElements() {
+		return activityDiagramElements;
 	}
 
-	public void setDiagramElements(List<DiagramElement> diagramElements) {
-		this.diagramElements = diagramElements;
+	public void setDiagramElements(List<ActivityDiagramElement> activityDiagramElements) {
+		this.activityDiagramElements = activityDiagramElements;
 	}
 
 	@Override

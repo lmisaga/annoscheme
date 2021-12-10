@@ -6,8 +6,8 @@ import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
-import org.annoscheme.common.model.element.ConditionalDiagramElement;
-import org.annoscheme.common.model.element.DiagramElement;
+import org.annoscheme.common.model.element.ActivityDiagramElement;
+import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.apache.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -124,10 +124,10 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 										.equals(AnnotationConstants.CONDITIONAL_NAME))
 				.findFirst();
 		if (!actionMirrors.isEmpty()) {
-			List<DiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
+			List<ActivityDiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
 			if (conditionalMirror.isPresent()) {
-				DiagramElement elementToAdd;
-				ConditionalDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
+				ActivityDiagramElement elementToAdd;
+				ConditionalActivityDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
 				if (actionElementsToAdd.stream().anyMatch(element -> Arrays.equals(element.getDiagramIdentifiers(),
 																				   conditionalElementToAdd.getDiagramIdentifiers()))) {
 					//TODO check this
@@ -163,8 +163,8 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 								}).collect(Collectors.toList());
 	}
 
-	private DiagramElement parseActivityDiagramElement(AnnotationMirror mirror) {
-		DiagramElement element = new DiagramElement();
+	private ActivityDiagramElement parseActivityDiagramElement(AnnotationMirror mirror) {
+		ActivityDiagramElement element = new ActivityDiagramElement();
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "message":
@@ -185,8 +185,8 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return element;
 	}
 
-	private ConditionalDiagramElement parseConditionalElement(AnnotationMirror mirror) {
-		ConditionalDiagramElement element = new ConditionalDiagramElement();
+	private ConditionalActivityDiagramElement parseConditionalElement(AnnotationMirror mirror) {
+		ConditionalActivityDiagramElement element = new ConditionalActivityDiagramElement();
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "type":

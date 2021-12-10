@@ -6,7 +6,8 @@ import org.annoscheme.common.annotation.Actions;
 import org.annoscheme.common.io.ObjectSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.annoscheme.common.model.element.DiagramElement;
+import org.annoscheme.common.model.element.ActivityDiagramElement;
+import org.annoscheme.common.model.element.ObjectActivityDiagramElement;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -80,29 +81,28 @@ public class AnnotationInterceptor {
 	}
 
 	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
-		DiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
-//		objectElement.setDiagramIdentifiers(new String[]{resolvePropertyValue(currentDiagram.getDiagramIdentifier())});
+		ObjectActivityDiagramElement objectElement = createObjectDiagramElementFromResult(joinPointResult);
 		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
 	private void createObjectAndGenerateDiagramFromJoinPoint(ActivityDiagramModel currentDiagram, Action actionAnnotation, JoinPoint joinPoint) {
-		DiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
+		ActivityDiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
 		this.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
-	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, DiagramElement objectElement) {
-		Optional<DiagramElement> element;
-		Optional<DiagramElement> successorOptional;
+	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, ActivityDiagramElement objectElement) {
+		Optional<ActivityDiagramElement> element;
+		Optional<ActivityDiagramElement> successorOptional;
 		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(resolvePropertyValue(actionAnnotation.message()))).findFirst();
 		if (element.isPresent()) {
-			DiagramElement currentElement = element.get();
+			ActivityDiagramElement currentElement = element.get();
 			successorOptional = currentDiagram.getDiagramElements().stream()
 											  .filter(x -> x.getParentMessage().equals(currentElement.getMessage()))
 											  .findFirst();
 			objectElement.setParentMessage(currentElement.getMessage());
 			objectElement.setDiagramIdentifiers(currentElement.getDiagramIdentifiers());
 			if (successorOptional.isPresent()) {
-				DiagramElement successorElement = successorOptional.get();
+				ActivityDiagramElement successorElement = successorOptional.get();
 				successorElement.setParentMessage(objectElement.getMessage());
 				//successor is present, that means object element is going to be placed within the diagram
 			} else {
@@ -117,8 +117,8 @@ public class AnnotationInterceptor {
 		executionCount++;
 	}
 
-	private DiagramElement createObjectDiagramElementFromResult(Object joinPointResult) throws Throwable {
-		DiagramElement objectElement = new DiagramElement();
+	private ObjectActivityDiagramElement createObjectDiagramElementFromResult(Object joinPointResult) throws Throwable {
+		ObjectActivityDiagramElement objectElement = new ObjectActivityDiagramElement();
 		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPointResult.getClass().getSimpleName() + "</b>\n");
 		Field[] fields = joinPointResult.getClass().getDeclaredFields();
 		AccessibleObject.setAccessible(fields, true);
@@ -135,8 +135,8 @@ public class AnnotationInterceptor {
 		return objectElement;
 	}
 
-	private DiagramElement createObjectDiagramElement(JoinPoint joinPoint) {
-		DiagramElement objectElement = new DiagramElement();
+	private ActivityDiagramElement createObjectDiagramElement(JoinPoint joinPoint) {
+		ObjectActivityDiagramElement objectElement = new ObjectActivityDiagramElement();
 		ConstructorSignature signature = (ConstructorSignature) joinPoint.getSignature();
 		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPoint.getTarget().getClass().getSimpleName() + "</b>\n");
 		Object[] arguments = joinPoint.getArgs();
