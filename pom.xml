@@ -44,14 +44,12 @@
 					<artifactId>aspectj-maven-plugin</artifactId>
 					<version>1.10</version>
 					<configuration>
-						<!--<showWeaveInfo>true</showWeaveInfo> -->
+						<showWeaveInfo>true</showWeaveInfo>
 						<source>${java.source-target.version}</source>
 						<target>${java.source-target.version}</target>
 						<Xlint>ignore</Xlint>
 						<complianceLevel>${java.source-target.version}</complianceLevel>
 						<encoding>${project.build.sourceEncoding}</encoding>
-						<!--<verbose>true</verbose> -->
-						<!--<warn>constructorName,packageDefaultMethod,deprecation,maskedCatchBlocks,unusedLocals,unusedArguments,unusedImport</warn> -->
 					</configuration>
 					<executions>
 						<execution>

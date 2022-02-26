@@ -17,10 +17,11 @@ public class DeviceRepository {
 
 	@Action(message = "d1.findById", parentMessage = "d1.start", diagramIdentifiers = {"d1.id"})
 	public Device findDeviceById(Integer deviceId) {
-		return deviceStorageMock.stream()
-								.filter(d -> d.getId().equals(deviceId))
-								.findFirst()
-								.orElse(null);
+		return deviceStorageMock
+				.stream()
+				.filter(device -> device.getId().equals(deviceId))
+				.findFirst()
+				.orElse(null);
 	}
 
 }

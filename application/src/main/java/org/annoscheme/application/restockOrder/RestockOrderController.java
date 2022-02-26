@@ -9,9 +9,6 @@ public class RestockOrderController {
 
 	@Action(actionType = ActionType.START, message="d1.start", diagramIdentifiers = {"d1.id"})
 	public RestockOrderRequestModel parseRequest(String[] inputArguments) {
-		if (inputArguments == null || inputArguments.length < 2) {
-			throw new IllegalArgumentException("Two arguments - device ID and restock quantity must be provided!");
-		}
 		Integer deviceId = Integer.parseInt(inputArguments[0]);
 		Integer restockQuantity = Integer.parseInt(inputArguments[1]);
 		return new RestockOrderRequestModel(deviceId, restockQuantity);

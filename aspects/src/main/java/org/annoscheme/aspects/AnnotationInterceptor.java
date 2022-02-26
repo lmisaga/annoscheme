@@ -3,7 +3,7 @@ package org.annoscheme.aspects;
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.Actions;
-import org.annoscheme.common.io.ObjectSerializer;
+import org.annoscheme.common.io.DiagramSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
@@ -30,7 +30,7 @@ public class AnnotationInterceptor {
 
 	private static final Logger logger = Logger.getLogger(AnnotationInterceptor.class);
 
-	private HashMap<String, ActivityDiagramModel> diagramsMap = ObjectSerializer.deserializeCachedDiagramsMap();
+	private HashMap<String, ActivityDiagramModel> diagramsMap = DiagramSerializer.deserializeCachedDiagramsMap();
 
 	private static final Properties properties = initProperties();
 

@@ -2,7 +2,7 @@ package org.annoscheme.common.processing;
 
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
-import org.annoscheme.common.io.ObjectSerializer;
+import org.annoscheme.common.io.DiagramSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
@@ -51,9 +51,9 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			properties.load(input);
 			return properties;
 
-		} catch (Exception io) {
-			logger.error("Properties could not be initialized due to " + io.getMessage() + " -> Defaulting to string annotation value definitions");
-			io.printStackTrace();
+		} catch (Exception exception) {
+			logger.error("Properties could not be initialized due to " + exception.getMessage() + " -> Defaulting to string annotation value definitions");
+			exception.printStackTrace();
 		}
 		return null;
 	}
@@ -232,7 +232,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private void createDiagrams() {
-		ObjectSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
+		DiagramSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
 		diagramCache.getDiagramsMap().forEach((key, value) -> VisualDiagramGenerator.generateImageFromPlantUmlString(value.toPlantUmlString(), key));
 	}
 

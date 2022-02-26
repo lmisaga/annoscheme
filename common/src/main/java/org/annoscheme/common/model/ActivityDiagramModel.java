@@ -4,6 +4,7 @@ import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
+import org.annoscheme.common.model.element.PlantUmlIntegrable;
 
 import java.util.ArrayList;
 import java.util.List;
