@@ -1,4 +1,4 @@
-package org.annoscheme.common.model;
+package org.annoscheme.common.model.element;
 
 public interface PlantUmlIntegrable {
 

@@ -13,13 +13,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
-public class ObjectSerializer {
+public class DiagramSerializer {
+
+	private static final String DIR_PATH = "/output-storage";
 
 	private static final String DIAGRAM_CACHE_PATH = "diagram-cache.json";
 
 	private static final ObjectMapper objectMapper = initializeObjectMapper();
 
 	private static final Logger logger = Logger.getLogger(VisualDiagramGenerator.class);
+
+	static {
+		File directory = new File(DIR_PATH);
+		if (!directory.exists()) {
+			directory.mkdir();
+		}
+	}
 
 	private static ObjectMapper initializeObjectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -53,6 +62,5 @@ public class ObjectSerializer {
 		}
 		return null;
 	}
-
 
 }

@@ -51,8 +51,6 @@
 						<Xlint>ignore</Xlint>
 						<complianceLevel>${java.source-target.version}</complianceLevel>
 						<encoding>${project.build.sourceEncoding}</encoding>
-						<!--<verbose>true</verbose> -->
-						<!--<warn>constructorName,packageDefaultMethod,deprecation,maskedCatchBlocks,unusedLocals,unusedArguments,unusedImport</warn> -->
 					</configuration>
 					<executions>
 						<execution>

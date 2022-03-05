@@ -3,33 +3,33 @@ package org.annoscheme.common.model.element;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
 
-public class ConditionalDiagramElement extends DiagramElement {
+public class ConditionalActivityDiagramElement extends ActivityDiagramElement {
 
 	private String condition;
 
 	private BranchingType branchingType;
 
-	private DiagramElement mainFlowDirectChild;
+	private ActivityDiagramElement mainFlowDirectChild;
 
-	private DiagramElement alternateFlowDirectChild;
+	private ActivityDiagramElement alternateFlowDirectChild;
 
 	public ActionType getActionType() {
 		return ActionType.CONDITIONAL;
 	}
 
-	public DiagramElement getMainFlowDirectChild() {
+	public ActivityDiagramElement getMainFlowDirectChild() {
 		return mainFlowDirectChild;
 	}
 
-	public void setMainFlowDirectChild(DiagramElement mainFlowDirectChild) {
+	public void setMainFlowDirectChild(ActivityDiagramElement mainFlowDirectChild) {
 		this.mainFlowDirectChild = mainFlowDirectChild;
 	}
 
-	public DiagramElement getAlternateFlowDirectChild() {
+	public ActivityDiagramElement getAlternateFlowDirectChild() {
 		return alternateFlowDirectChild;
 	}
 
-	public void setAlternateFlowDirectChild(DiagramElement alternateFlowDirectChild) {
+	public void setAlternateFlowDirectChild(ActivityDiagramElement alternateFlowDirectChild) {
 		this.alternateFlowDirectChild = alternateFlowDirectChild;
 	}
 

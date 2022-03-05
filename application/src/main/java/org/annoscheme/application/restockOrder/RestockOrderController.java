@@ -7,11 +7,8 @@ public class RestockOrderController {
 
 	private final RestockOrderService restockOrderService = new RestockOrderService();
 
-	@Action(actionType = ActionType.START, message="Parse request", diagramIdentifiers = {"1"})
+	@Action(actionType = ActionType.START, message="d1.start", diagramIdentifiers = {"d1.id"})
 	public RestockOrderRequestModel parseRequest(String[] inputArguments) {
-		if (inputArguments == null || inputArguments.length < 2) {
-			throw new IllegalArgumentException("Two arguments - device ID and restock quantity must be provided!");
-		}
 		Integer deviceId = Integer.parseInt(inputArguments[0]);
 		Integer restockQuantity = Integer.parseInt(inputArguments[1]);
 		return new RestockOrderRequestModel(deviceId, restockQuantity);
@@ -21,7 +18,7 @@ public class RestockOrderController {
 		return restockOrderService.createRestockOrder(parseRequest(inputArguments));
 	}
 
-	@Action(actionType = ActionType.START, message="Cancel restock order request received", diagramIdentifiers = {"2"})
+	@Action(actionType = ActionType.START, message="d2.start", diagramIdentifiers = {"d2.id"})
 	public void cancelRestockOrder(Integer restockOrderId) {
 		restockOrderService.cancelRestockOrder(restockOrderId);
 	}

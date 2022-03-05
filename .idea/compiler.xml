@@ -14,7 +14,6 @@
         <outputRelativeToContentRoot value="true" />
         <module name="application" />
         <module name="aspects" />
-        <module name="common" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

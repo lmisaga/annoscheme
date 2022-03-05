@@ -19,7 +19,7 @@ public class RestockOrderRepository {
 		));
 	}
 
-	@Action(message = "Find restock order by ID", actionType = ActionType.ACTION, diagramIdentifiers = {"2"}, parentMessage = "Cancel restock order request received")
+	@Action(message = "d2.findResOrById", actionType = ActionType.ACTION, diagramIdentifiers = {"d2.id"}, parentMessage = "d2.start")
 	public RestockOrder findRestockOrderById(Integer restockOrderId) {
 		return this.restockOrdersMockStorage.stream()
 											.filter(r -> r.getId().equals(restockOrderId))
@@ -27,11 +27,12 @@ public class RestockOrderRepository {
 											.orElse(null);
 	}
 
-	@Action(actionType = ActionType.END, message="Save restock order", diagramIdentifiers = {"1"}, parentMessage = "Create restock order")
-	@Action(actionType = ActionType.END, message = "Save restock order", diagramIdentifiers = {"2"}, parentMessage = "Cancel restock order")
+	@Action(actionType = ActionType.END, message = "d1.saveResOr", diagramIdentifiers = {"d1.id"}, parentMessage = "d1.createResOr")
+	@Action(actionType = ActionType.END, message = "d2.saveResOr", diagramIdentifiers = {"d2.id"}, parentMessage = "d2.cancel")
 	public RestockOrder insertRestockOrder(RestockOrder restockOrder) {
 		this.restockOrdersMockStorage.add(restockOrder);
 		return restockOrder;
 	}
 
 }
+

@@ -1,13 +1,13 @@
 package org.annoscheme.common.model;
 
-import org.annoscheme.common.model.element.DiagramElement;
+import org.annoscheme.common.model.element.ActivityDiagramElement;
 
 import java.util.Arrays;
 import java.util.HashMap;
 
 public class DiagramModelCache {
 
-	private static DiagramModelCache instance = null;
+	private static DiagramModelCache instance;
 
 	//<key, value> pairs of <diagramIdentifier, diagramModel>
 	private final HashMap<String, ActivityDiagramModel> diagramsMap;
@@ -30,7 +30,7 @@ public class DiagramModelCache {
 		}
 	}
 
-	public boolean addElementToDiagramByIdentifier(DiagramElement elementToAdd) {
+	public boolean addElementToDiagramByIdentifier(ActivityDiagramElement elementToAdd) {
 		if (elementToAdd.getDiagramIdentifiers().length == 1) {
 			this.getModelByDiagramIdentifier(elementToAdd.getDiagramIdentifiers()[0]).addElement(elementToAdd);
 			return true;

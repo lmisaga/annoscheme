@@ -2,12 +2,12 @@ package org.annoscheme.common.processing;
 
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
-import org.annoscheme.common.io.ObjectSerializer;
+import org.annoscheme.common.io.DiagramSerializer;
 import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
-import org.annoscheme.common.model.element.ConditionalDiagramElement;
-import org.annoscheme.common.model.element.DiagramElement;
+import org.annoscheme.common.model.element.ActivityDiagramElement;
+import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.apache.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -51,9 +51,9 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			properties.load(input);
 			return properties;
 
-		} catch (Exception io) {
-			logger.error("Properties could not be initialized due to " + io.getMessage() + " -> Defaulting to string annotation value definitions");
-			io.printStackTrace();
+		} catch (Exception exception) {
+			logger.error("Properties could not be initialized due to " + exception.getMessage() + " -> Defaulting to string annotation value definitions");
+			exception.printStackTrace();
 		}
 		return null;
 	}
@@ -103,7 +103,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
 		annotationMirrors = filterMirrorsForActionAnnotations(annotationMirrors);
-		//TODO change this, not valid for multiple @Action-s
 		if (annotationMirrors.size() == 1 && annotationMirrors.get(0).getAnnotationType()
 															  .asElement().getSimpleName().toString()
 															  .equals(AnnotationConstants.CONDITIONAL_NAME)) {
@@ -125,10 +124,10 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 										.equals(AnnotationConstants.CONDITIONAL_NAME))
 				.findFirst();
 		if (!actionMirrors.isEmpty()) {
-			List<DiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
+			List<ActivityDiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
 			if (conditionalMirror.isPresent()) {
-				DiagramElement elementToAdd;
-				ConditionalDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
+				ActivityDiagramElement elementToAdd;
+				ConditionalActivityDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
 				if (actionElementsToAdd.stream().anyMatch(element -> Arrays.equals(element.getDiagramIdentifiers(),
 																				   conditionalElementToAdd.getDiagramIdentifiers()))) {
 					//TODO check this
@@ -164,25 +163,18 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 								}).collect(Collectors.toList());
 	}
 
-	private DiagramElement parseActivityDiagramElement(AnnotationMirror mirror) {
-		DiagramElement element = new DiagramElement();
+	private ActivityDiagramElement parseActivityDiagramElement(AnnotationMirror mirror) {
+		ActivityDiagramElement element = new ActivityDiagramElement();
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "message":
-					element.setMessage(String.valueOf(value));
+					element.setMessage(this.resolvePropertyValue(String.valueOf(value)));
 					break;
 				case "diagramIdentifiers":
-					List<String> identifiers = value.getValue() instanceof List ?
-											   (List<String>) value.getValue() :
-											   new ArrayList<>();
-					if (identifiers.size() == 1) {
-						element.setDiagramIdentifiers(new String[]{String.valueOf(identifiers.get(0))});
-					} else {
-						element.setDiagramIdentifiers(identifiers.stream().map(String::valueOf).toArray(String[]::new));
-					}
+					element.setDiagramIdentifiers(parseDiagramIdentifiers(value));
 					break;
 				case "parentMessage":
-					element.setParentMessage(String.valueOf(value));
+					element.setParentMessage(this.resolvePropertyValue(String.valueOf(value)));
 					break;
 				case "actionType":
 					element.setActionType(getActionTypeForElement(String.valueOf(value.getValue())));
@@ -193,26 +185,19 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return element;
 	}
 
-	private ConditionalDiagramElement parseConditionalElement(AnnotationMirror mirror) {
-		ConditionalDiagramElement element = new ConditionalDiagramElement();
+	private ConditionalActivityDiagramElement parseConditionalElement(AnnotationMirror mirror) {
+		ConditionalActivityDiagramElement element = new ConditionalActivityDiagramElement();
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "type":
 					element.setBranchingType(this.getBranchingTypeForString(String.valueOf(value.getValue())));
 					break;
 				case "condition":
-					element.setCondition(String.valueOf(value));
-					element.setMessage(String.valueOf(value));
+					element.setCondition(this.resolvePropertyValue(String.valueOf(value)));
+					element.setMessage(element.getCondition());
 					break;
 				case "diagramIdentifiers":
-					List<String> identifiers = value.getValue() instanceof List ?
-											   (List<String>) value.getValue() :
-											   new ArrayList<>();
-					if (identifiers.size() == 1) {
-						element.setDiagramIdentifiers(new String[]{String.valueOf(identifiers.get(0))});
-					} else {
-						element.setDiagramIdentifiers(identifiers.stream().map(String::valueOf).toArray(String[]::new));
-					}
+					element.setDiagramIdentifiers(parseDiagramIdentifiers(value));
 					break;
 			}
 		});
@@ -226,6 +211,19 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		return ActionType.valueOf(inputString);
 	}
 
+	private String[] parseDiagramIdentifiers(AnnotationValue identifiersAnnotationValue) {
+		List<String> identifiers = identifiersAnnotationValue.getValue() instanceof List ?
+								   (List<String>) identifiersAnnotationValue.getValue() :
+								   new ArrayList<>();
+		if (identifiers.size() == 1) {
+			return new String[]{this.resolvePropertyValue(String.valueOf(identifiers.get(0)))};
+		} else {
+			return identifiers.stream().map(String::valueOf)
+							  .map(this::resolvePropertyValue)
+							  .toArray(String[]::new);
+		}
+	}
+
 	private BranchingType getBranchingTypeForString(String inputString) {
 		if (inputString == null || inputString.isEmpty()) {
 			return BranchingType.MAIN;
@@ -234,7 +232,12 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private void createDiagrams() {
-		ObjectSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
+		DiagramSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
 		diagramCache.getDiagramsMap().forEach((key, value) -> VisualDiagramGenerator.generateImageFromPlantUmlString(value.toPlantUmlString(), key));
+	}
+
+	private String resolvePropertyValue(String key) {
+		key = key != null ? key.replace("\"","").trim() : null;
+		return properties != null && key != null ? properties.getProperty(key) : key;
 	}
 }
