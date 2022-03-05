@@ -1,6 +1,7 @@
 package org.annoscheme.common.io;
 
 import org.annoscheme.common.model.ActivityDiagramModel;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,8 @@ public class ObjectSerializer {
 
 	private static final ObjectMapper objectMapper = initializeObjectMapper();
 
+	private static final Logger logger = Logger.getLogger(VisualDiagramGenerator.class);
+
 	private static ObjectMapper initializeObjectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
 		PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
@@ -34,6 +37,7 @@ public class ObjectSerializer {
 
 	public static void serializeCachedDiagramsMap(HashMap<String, ActivityDiagramModel> diagramMap) {
 		try {
+			logger.info("Serializing cached diagrams map to " + DIAGRAM_CACHE_PATH);
 			objectMapper.writeValue(new File(DIAGRAM_CACHE_PATH), diagramMap);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -42,7 +46,8 @@ public class ObjectSerializer {
 
 	public static HashMap<String, ActivityDiagramModel> deserializeCachedDiagramsMap() {
 		try {
-			return objectMapper.readValue(new File("diagram-cache.json"), HashMap.class);
+			logger.info("Deserializing diagrams from " + DIAGRAM_CACHE_PATH);
+			return objectMapper.readValue(new File(DIAGRAM_CACHE_PATH), HashMap.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

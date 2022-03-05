@@ -2,7 +2,7 @@
 <project version="4">
   <component name="AjcSettings">
     <option name="ajcPath" value="$MAVEN_REPOSITORY$/org/aspectj/aspectjtools/1.8.10/aspectjtools-1.8.10.jar" />
-    <option name="cmdLineParams" value="-Xlint:ignore" />
+    <option name="cmdLineParams" value="-Xlint:ignore -showWeaveInfo" />
     <option name="delegateToJavac" value="true" />
   </component>
   <component name="CompilerConfiguration">
@@ -20,5 +20,10 @@
     <bytecodeTargetLevel>
       <module name="app" target="1.8" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="common" options="" />
+    </option>
   </component>
 </project>

@@ -12,7 +12,7 @@
 	<artifactId>common</artifactId>
 
 	<properties>
-		<auto-service.version>1.0-rc2</auto-service.version>
+		<auto-service.version>1.0.1</auto-service.version>
 		<maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
 	</properties>
 
@@ -26,7 +26,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.13.0</version>
+			<version>2.13.1</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
