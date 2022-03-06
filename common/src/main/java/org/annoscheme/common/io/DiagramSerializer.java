@@ -1,7 +1,8 @@
 package org.annoscheme.common.io;
 
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class DiagramSerializer {
 
 	private static final ObjectMapper objectMapper = initializeObjectMapper();
 
-	private static final Logger logger = Logger.getLogger(VisualDiagramGenerator.class);
+	private static final Logger logger = LogManager.getLogger(VisualDiagramGenerator.class);
 
 	static {
 		File directory = new File(DIR_PATH);

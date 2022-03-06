@@ -1,7 +1,8 @@
 package org.annoscheme.common.io;
 
 import net.sourceforge.plantuml.SourceStringReader;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.util.NoSuchElementException;
 
 public class VisualDiagramGenerator {
 
-	private static final Logger logger = Logger.getLogger(VisualDiagramGenerator.class);
+	private static final Logger logger = LogManager.getLogger(VisualDiagramGenerator.class);
 
 	public static void generateImageFromPlantUmlString(String plantUmlString, String fileName) {
 		try {
