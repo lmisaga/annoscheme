@@ -7,6 +7,7 @@ import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.BranchingType;
 import org.annoscheme.common.annotation.Conditional;
+import org.annoscheme.common.annotation.Joining;
 
 import com.sun.org.slf4j.internal.Logger;
 import com.sun.org.slf4j.internal.LoggerFactory;
@@ -24,7 +25,7 @@ public class RestockOrderService {
 	}
 
 	@Action(diagramIdentifiers = {"d1.id"}, message = "d1.createResOr", parentMessage = "d1.findById")
-	@Conditional(type = BranchingType.MAIN, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"}, joining = true)
+	@Conditional(type = BranchingType.MAIN, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"})
 	public RestockOrder createRestockOrder(RestockOrderRequestModel requestModel) {
 		try {
 			Device device = this.deviceRepository.findDeviceById(requestModel.getDeviceId());
@@ -47,6 +48,7 @@ public class RestockOrderService {
 		this.restockOrderRepository.insertRestockOrder(orderToCancel);
 	}
 
+	@Joining(condition = "d1.deviceCond")
 	@Action(message = "d1.logOpResult", diagramIdentifiers = {"d1.id"}, actionType = ActionType.END)
 	private void logCreateResponse(boolean isSuccess, String message) {
 		if (isSuccess) {
