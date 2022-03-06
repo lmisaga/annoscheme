@@ -24,7 +24,7 @@ public class RestockOrderService {
 	}
 
 	@Action(diagramIdentifiers = {"d1.id"}, message = "d1.createResOr", parentMessage = "d1.findById")
-	@Conditional(type = BranchingType.MAIN, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"})
+	@Conditional(type = BranchingType.MAIN, condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"}, joining = true)
 	public RestockOrder createRestockOrder(RestockOrderRequestModel requestModel) {
 		try {
 			Device device = this.deviceRepository.findDeviceById(requestModel.getDeviceId());
@@ -48,7 +48,6 @@ public class RestockOrderService {
 	}
 
 	@Action(message = "d1.logOpResult", diagramIdentifiers = {"d1.id"}, actionType = ActionType.END)
-	@Conditional(joining = true, diagramIdentifiers = {"d1.id"}, condition = "d1.deviceCond")
 	private void logCreateResponse(boolean isSuccess, String message) {
 		if (isSuccess) {
 			logger.debug("Restock order created successfully: " + message);
