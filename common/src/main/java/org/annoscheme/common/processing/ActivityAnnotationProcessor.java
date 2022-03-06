@@ -8,7 +8,8 @@ import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -40,7 +41,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
 
-	private static final Logger logger = Logger.getLogger(ActivityAnnotationProcessor.class);
+	private static final Logger logger = LogManager.getLogger(ActivityAnnotationProcessor.class);
 	private static final Properties properties = initProperties();
 
 	private final DiagramModelCache diagramCache = DiagramModelCache.getInstance();

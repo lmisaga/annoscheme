@@ -8,7 +8,8 @@ import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ObjectActivityDiagramElement;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -28,7 +29,7 @@ public class AnnotationInterceptor {
 
 	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
 
-	private static final Logger logger = Logger.getLogger(AnnotationInterceptor.class);
+	private static final Logger logger = LogManager.getLogger(AnnotationInterceptor.class);
 
 	private HashMap<String, ActivityDiagramModel> diagramsMap = DiagramSerializer.deserializeCachedDiagramsMap();
 
