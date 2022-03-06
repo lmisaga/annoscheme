@@ -85,7 +85,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 					});
 				}
 			}
-			this.createDiagrams();
+			this.persistDiagrams();
 		}
 		return true;
 	}
@@ -190,7 +190,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		mirror.getElementValues().forEach((key, value) -> {
 			switch (key.getSimpleName().toString()) {
 				case "type":
-					element.setBranchingType(this.getBranchingTypeForString(String.valueOf(value.getValue())));
+					element.setBranchingType(BranchingType.valueOfString(String.valueOf(value.getValue())));
 					break;
 				case "condition":
 					element.setCondition(this.resolvePropertyValue(String.valueOf(value)));
@@ -224,14 +224,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		}
 	}
 
-	private BranchingType getBranchingTypeForString(String inputString) {
-		if (inputString == null || inputString.isEmpty()) {
-			return BranchingType.MAIN;
-		}
-		return BranchingType.valueOf(inputString);
-	}
-
-	private void createDiagrams() {
+	private void persistDiagrams() {
 		DiagramSerializer.serializeCachedDiagramsMap(this.diagramCache.getDiagramsMap());
 		diagramCache.getDiagramsMap().forEach((key, value) -> VisualDiagramGenerator.generateImageFromPlantUmlString(value.toPlantUmlString(), key));
 	}

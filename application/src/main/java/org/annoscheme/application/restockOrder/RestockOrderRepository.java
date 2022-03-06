@@ -27,7 +27,7 @@ public class RestockOrderRepository {
 											.orElse(null);
 	}
 
-	@Action(actionType = ActionType.END, message = "d1.saveResOr", diagramIdentifiers = {"d1.id"}, parentMessage = "d1.createResOr")
+	@Action(actionType = ActionType.ACTION, message = "d1.saveResOr", diagramIdentifiers = {"d1.id"}, parentMessage = "d1.createResOr")
 	@Action(actionType = ActionType.END, message = "d2.saveResOr", diagramIdentifiers = {"d2.id"}, parentMessage = "d2.cancel")
 	public RestockOrder insertRestockOrder(RestockOrder restockOrder) {
 		this.restockOrdersMockStorage.add(restockOrder);
