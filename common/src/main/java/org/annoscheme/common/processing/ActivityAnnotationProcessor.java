@@ -151,7 +151,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			actionElementsToAdd.forEach(this.diagramCache::addElementToDiagramByIdentifier);
 		}
 
-
 	}
 
 	private List<? extends AnnotationMirror> filterMirrorsForActionAnnotations(List<? extends AnnotationMirror> annotationMirrors) {
