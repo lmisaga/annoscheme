@@ -11,7 +11,9 @@ public @interface Conditional {
 
 	String condition() default "";
 
-	BranchingType type();
+	BranchingType type() default BranchingType.JOINING;
+
+	boolean joining() default false;
 
 	String[] diagramIdentifiers() default {};
 
