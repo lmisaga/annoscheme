@@ -48,7 +48,7 @@ public class RestockOrderService {
 		this.restockOrderRepository.insertRestockOrder(orderToCancel);
 	}
 
-	@Joining(condition = "d1.deviceCond")
+	@Joining(condition = "d1.deviceCond", diagramIdentifiers = {"d1.id"})
 	@Action(message = "d1.logOpResult", diagramIdentifiers = {"d1.id"}, actionType = ActionType.END)
 	private void logCreateResponse(boolean isSuccess, String message) {
 		if (isSuccess) {

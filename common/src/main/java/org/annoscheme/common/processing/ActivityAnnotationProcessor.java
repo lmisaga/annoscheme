@@ -8,6 +8,7 @@ import org.annoscheme.common.model.DiagramModelCache;
 import org.annoscheme.common.model.constants.AnnotationConstants;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
+import org.annoscheme.common.model.element.JoiningDiagramElement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -96,7 +97,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		for (ExecutableElement executableElement : annotation.getElementValues().keySet()) {
 			ArrayList<AnnotationValue> annotValues = new ArrayList<>(
 					(Collection<? extends AnnotationValue>) annotation.getElementValues().get(executableElement).getValue());
-			parsedActions.addAll(annotValues.stream().map(annotationValue -> (AnnotationMirror)annotationValue.getValue()).collect(Collectors.toList()));
+			parsedActions.addAll(annotValues.stream().map(annotationValue -> (AnnotationMirror) annotationValue.getValue()).collect(Collectors.toList()));
 
 		}
 		return parsedActions;
@@ -104,10 +105,13 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private void parseDiagramElementsFromAnnotationMirrors(List<? extends AnnotationMirror> annotationMirrors) {
 		annotationMirrors = filterMirrorsForActionAnnotations(annotationMirrors);
-		if (annotationMirrors.size() == 1 && annotationMirrors.get(0).getAnnotationType()
-															  .asElement().getSimpleName().toString()
-															  .equals(AnnotationConstants.CONDITIONAL_NAME)) {
-			throw new IllegalStateException("@Conditional must appear with @Action!");
+		// check if annotation mirrors size == 1 and whether it contains something other than @Action
+		if (annotationMirrors.size() == 1) {
+			if (!annotationMirrors.get(0).getAnnotationType().asElement().getSimpleName().toString()
+								  .equals(AnnotationConstants.ACTION_NAME)) {
+				throw new IllegalStateException("@Conditional or @Joining must appear with @Action!");
+			}
+			//TODO check if mirrors do not contain @Joining and @Conditional at the same time
 		}
 
 		List<? extends AnnotationMirror> actionMirrors = annotationMirrors
@@ -124,8 +128,21 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 										.getSimpleName().toString()
 										.equals(AnnotationConstants.CONDITIONAL_NAME))
 				.findFirst();
+		Optional<? extends AnnotationMirror> joiningMirror = annotationMirrors
+				.stream()
+				.filter(mirror -> mirror.getAnnotationType()
+										.asElement()
+										.getSimpleName().toString()
+										.equals(AnnotationConstants.JOINING_NAME))
+				.findFirst();
 		if (!actionMirrors.isEmpty()) {
 			List<ActivityDiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
+			if (joiningMirror.isPresent()) {
+				JoiningDiagramElement joiningElementToAdd = this.parseJoiningElement(joiningMirror.get());
+				this.diagramCache.addElementToDiagramByIdentifier(joiningElementToAdd);
+				//set actionElementsToAdd parent message to joining.message
+				actionElementsToAdd.forEach(elementToAdd -> elementToAdd.setParentMessage(joiningElementToAdd.getMessage()));
+			}
 			if (conditionalMirror.isPresent()) {
 				ActivityDiagramElement elementToAdd;
 				ConditionalActivityDiagramElement conditionalElementToAdd = this.parseConditionalElement(conditionalMirror.get());
@@ -154,12 +171,14 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private List<? extends AnnotationMirror> filterMirrorsForActionAnnotations(List<? extends AnnotationMirror> annotationMirrors) {
+		List<String> allowedAnnotationNames = Arrays.asList(AnnotationConstants.CONDITIONAL_NAME,
+														   AnnotationConstants.ACTION_NAME,
+														   AnnotationConstants.JOINING_NAME);
 		return annotationMirrors.stream()
 								.filter(mirror -> {
 									String annotationName = mirror.getAnnotationType().asElement().getSimpleName().toString();
 									annotationName = annotationName != null ? annotationName : "";
-									return annotationName.equals(AnnotationConstants.CONDITIONAL_NAME) ||
-										   annotationName.equals(AnnotationConstants.ACTION_NAME);
+									return allowedAnnotationNames.contains(annotationName);
 								}).collect(Collectors.toList());
 	}
 
@@ -182,6 +201,21 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			}
 		});
 
+		return element;
+	}
+
+	private JoiningDiagramElement parseJoiningElement(AnnotationMirror mirror) {
+		JoiningDiagramElement element = new JoiningDiagramElement();
+		mirror.getElementValues().forEach((key, value) -> {
+			switch (key.getSimpleName().toString()) {
+				case "condition":
+					element.setParentMessage(this.resolvePropertyValue(String.valueOf(value)));
+					break;
+				case "diagramIdentifiers":
+					element.setDiagramIdentifiers(parseDiagramIdentifiers(value));
+					break;
+			}
+		});
 		return element;
 	}
 
@@ -230,7 +264,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private String resolvePropertyValue(String key) {
-		key = key != null ? key.replace("\"","").trim() : null;
+		key = key != null ? key.replace("\"", "").trim() : null;
 		return properties != null && key != null ? properties.getProperty(key) : key;
 	}
 }

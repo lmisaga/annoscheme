@@ -11,4 +11,6 @@ public @interface Joining {
 
 	String condition();
 
+	String[] diagramIdentifiers();
+
 }

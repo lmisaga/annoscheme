@@ -4,11 +4,13 @@ import net.sourceforge.plantuml.StringUtils;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
+import org.annoscheme.common.model.element.JoiningDiagramElement;
 import org.annoscheme.common.model.element.PlantUmlIntegrable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -21,10 +23,15 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 
 	private List<ActivityDiagramElement> activityDiagramElements = new ArrayList<>();
 
+	//TODO toPlantUmlString with this builder
+	@JsonIgnore
+	private StringBuilder plantUmlStringBuilder;
+
 	@Override
 	@JsonIgnore
 	public String toPlantUmlString() {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
+		List<ActivityDiagramElement> diagramElementsCopy = activityDiagramElements.stream().map(ActivityDiagramElement::clone).collect(Collectors.toList());
 		ActivityDiagramElement startElement = activityDiagramElements.stream().filter(x -> x.getActionType().equals(ActionType.START)).findFirst().orElse(null);
 		if (startElement == null) {
 			throw new IllegalStateException("Diagram has no starting element");
@@ -36,19 +43,28 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		//TODO sentinel the processing
 		while (!reachedEndState) {
 			ActivityDiagramElement finalCurrent = current;
-			current = activityDiagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage())).findFirst().orElse(null);
+			//find next element to process, assign it to 'current'
+			if (current instanceof ConditionalActivityDiagramElement) {
+				current = activityDiagramElements
+						.stream()
+						.filter(x -> x instanceof JoiningDiagramElement &&
+									 x.getParentMessage().equals(((ConditionalActivityDiagramElement) finalCurrent).getCondition()))
+						.findFirst().orElse(null);
+			} else {
+				current = activityDiagramElements.stream().filter(x -> x.getParentMessage() != null && x.getParentMessage().equals(finalCurrent.getMessage()))
+												 .findFirst().orElse(null);
+			}
 			if (current instanceof ConditionalActivityDiagramElement) {
 				ConditionalActivityDiagramElement currentConditional = (ConditionalActivityDiagramElement) current;
 				plantUmlStringBuilder.append("if (")
 									 .append(currentConditional.getCondition())
 									 .append(") ")
-						.append("then ").append("([true]) \n");
+									 .append("then ").append("([true]) \n");
 				//get main branch
 				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getMainFlowDirectChild()));
 				plantUmlStringBuilder.append("else (").append("[false]").append(") \n");
 				//get alternative branch
 				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getAlternateFlowDirectChild()));
-				reachedEndState = true;
 			} else {
 				plantUmlStringBuilder.append(current.toPlantUmlString());
 			}
@@ -64,14 +80,16 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
 		ActivityDiagramElement current = fromElement;
 		plantUmlStringBuilder.append(current.toPlantUmlString());
-		while (!current.getActionType().equals(ActionType.END)) {
+		while (current != null && !current.getActionType().equals(ActionType.END)) {
 			ActivityDiagramElement finalCurrent = current;
 			ActivityDiagramElement child = activityDiagramElements.stream()
 																  .filter(x -> x.getParentMessage() != null &&
-															   x.getParentMessage().equalsIgnoreCase(finalCurrent.getMessage().toLowerCase()))
+																			   x.getParentMessage().equalsIgnoreCase(finalCurrent.getMessage().toLowerCase()))
 																  .findFirst()
-																  .get();
-			plantUmlStringBuilder.append(child.toPlantUmlString());
+																  .orElse(null);
+			if (child != null) {
+				plantUmlStringBuilder.append(child.toPlantUmlString());
+			}
 			current = child;
 		}
 		return plantUmlStringBuilder.toString();
