@@ -113,7 +113,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			}
 			//TODO check if mirrors do not contain @Joining and @Conditional at the same time
 		}
-
 		List<? extends AnnotationMirror> actionMirrors = annotationMirrors
 				.stream()
 				.filter(mirror -> mirror.getAnnotationType()
@@ -138,6 +137,9 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 		if (!actionMirrors.isEmpty()) {
 			List<ActivityDiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
 			if (joiningMirror.isPresent()) {
+				if (conditionalMirror.isPresent()) {
+					throw new IllegalStateException("@Conditional and @Joining must not appear together!");
+				}
 				JoiningDiagramElement joiningElementToAdd = this.parseJoiningElement(joiningMirror.get());
 				this.diagramCache.addElementToDiagramByIdentifier(joiningElementToAdd);
 				//set actionElementsToAdd parent message to joining.message
