@@ -1,13 +1,6 @@
 package org.annoscheme.common.model.element;
 
-public class JoiningDiagramElement extends DiagramElement {
-
-	private String mainBranchParentMessage;
-
-	private String altBranchParentMessage;
-
-	//something arbitrary
-	private String message;
+public class JoiningDiagramElement extends ActivityDiagramElement {
 
 	@Override
 	public String toPlantUmlString() {
@@ -20,31 +13,8 @@ public class JoiningDiagramElement extends DiagramElement {
 	}
 
 	@Override
-	public String trimAndReplaceQuotes(String inputString) {
-		return super.trimAndReplaceQuotes(inputString);
-	}
-
-	public String getMainBranchParentMessage() {
-		return mainBranchParentMessage;
-	}
-
-	public void setMainBranchParentMessage(String mainBranchParentMessage) {
-		this.mainBranchParentMessage = mainBranchParentMessage;
-	}
-
-	public String getAltBranchParentMessage() {
-		return altBranchParentMessage;
-	}
-
-	public void setAltBranchParentMessage(String altBranchParentMessage) {
-		this.altBranchParentMessage = altBranchParentMessage;
-	}
-
 	public String getMessage() {
-		return "join" + getMainBranchParentMessage() + "|" + getAltBranchParentMessage();
+		return "join-" + this.getParentMessage();
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
-	}
 }
