@@ -9,8 +9,6 @@ import org.annoscheme.common.model.constants.AnnotationConstants;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.annoscheme.common.model.element.JoiningDiagramElement;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -22,6 +20,8 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,22 +40,20 @@ import com.google.auto.service.AutoService;
 @AutoService(Processor.class)
 public class ActivityAnnotationProcessor extends AbstractProcessor {
 
-	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
+	private static final String PROPERTIES_PATH = "properties/annotationvalue.properties";
 
-	private static final Logger logger = LogManager.getLogger(ActivityAnnotationProcessor.class);
-	private static final Properties properties = initProperties();
+	private Properties properties;
 
 	private final DiagramModelCache diagramCache = DiagramModelCache.getInstance();
 
-	private static Properties initProperties() {
-		try (InputStream input = ActivityAnnotationProcessor.class.getResourceAsStream(PROPERTIES_PATH)) {
+	private Properties initProperties() {
+		try {
+			InputStream io = new FileInputStream(PROPERTIES_PATH);
 			Properties properties = new Properties();
-			properties.load(input);
+			properties.load(io);
 			return properties;
-
-		} catch (Exception exception) {
-			logger.error("Properties could not be initialized due to " + exception.getMessage() + " -> Defaulting to string annotation value definitions");
-			exception.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -63,6 +61,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+		this.properties = this.initProperties();
 		if (!annotations.isEmpty()) {
 			for (TypeElement annotation : annotations) {
 				Set<ExecutableElement> annotatedElements = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(annotation);
@@ -174,8 +173,8 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private List<? extends AnnotationMirror> filterMirrorsForActionAnnotations(List<? extends AnnotationMirror> annotationMirrors) {
 		List<String> allowedAnnotationNames = Arrays.asList(AnnotationConstants.CONDITIONAL_NAME,
-														   AnnotationConstants.ACTION_NAME,
-														   AnnotationConstants.JOINING_NAME);
+															AnnotationConstants.ACTION_NAME,
+															AnnotationConstants.JOINING_NAME);
 		return annotationMirrors.stream()
 								.filter(mirror -> {
 									String annotationName = mirror.getAnnotationType().asElement().getSimpleName().toString();

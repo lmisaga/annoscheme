@@ -1,8 +1,8 @@
 package org.annoscheme.common.io;
 
 import org.annoscheme.common.model.ActivityDiagramModel;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,13 +16,13 @@ import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 
 public class DiagramSerializer {
 
-	private static final String DIR_PATH = "/output-storage";
+	private static final String DIR_PATH = "output-storage";
 
 	private static final String DIAGRAM_CACHE_PATH = "diagram-cache.json";
 
 	private static final ObjectMapper objectMapper = initializeObjectMapper();
 
-	private static final Logger logger = LogManager.getLogger(VisualDiagramGenerator.class);
+	private static final Logger logger = LoggerFactory.getLogger(DiagramSerializer.class);
 
 	static {
 		File directory = new File(DIR_PATH);
@@ -48,7 +48,7 @@ public class DiagramSerializer {
 	public static void serializeCachedDiagramsMap(HashMap<String, ActivityDiagramModel> diagramMap) {
 		try {
 			logger.info("Serializing cached diagrams map to " + DIAGRAM_CACHE_PATH);
-			objectMapper.writeValue(new File(DIAGRAM_CACHE_PATH), diagramMap);
+			objectMapper.writeValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), diagramMap);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -57,7 +57,7 @@ public class DiagramSerializer {
 	public static HashMap<String, ActivityDiagramModel> deserializeCachedDiagramsMap() {
 		try {
 			logger.info("Deserializing diagrams from " + DIAGRAM_CACHE_PATH);
-			return objectMapper.readValue(new File(DIAGRAM_CACHE_PATH), HashMap.class);
+			return objectMapper.readValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), HashMap.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

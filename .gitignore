@@ -1,5 +1,4 @@
 
-.idea
 */target/
 /aspects/target/
 /application/target/
@@ -8,4 +7,6 @@
 /img/
 
 /diagram-cache.json
+/output-storage/**
+/.idea/*.xml
 
