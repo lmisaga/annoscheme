@@ -8,54 +8,33 @@ import org.annoscheme.common.io.VisualDiagramGenerator;
 import org.annoscheme.common.model.ActivityDiagramModel;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ObjectActivityDiagramElement;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.annoscheme.common.properties.PropertiesHandler;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.ConstructorSignature;
 
-import java.io.InputStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Properties;
 
 @Aspect
 public class AnnotationInterceptor {
 
-	private static final String PROPERTIES_PATH = "/annotationvalue.properties";
-
-	private static final Logger logger = LogManager.getLogger(AnnotationInterceptor.class);
-
 	private HashMap<String, ActivityDiagramModel> diagramsMap = DiagramSerializer.deserializeCachedDiagramsMap();
 
-	private static final Properties properties = initProperties();
-
-	private static Properties initProperties() {
-		try (InputStream input = AnnotationInterceptor.class.getResourceAsStream(PROPERTIES_PATH)) {
-			Properties properties = new Properties();
-			properties.load(input);
-			return properties;
-
-		} catch (Exception io) {
-			logger.error("Properties could not be initialized due to " + io.getMessage() + " -> Defaulting to string annotation value definitions");
-			io.printStackTrace();
-		}
-		return null;
-	}
+	private final PropertiesHandler propertiesHandler = PropertiesHandler.getInstance();
 
 	private Integer executionCount = 1;
 
 	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation)")
 	public Object actionAnnotationAdvice(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
-		String resolvedIdentifier = resolvePropertyValue(actionAnnotation.diagramIdentifiers()[0]);
+		String resolvedIdentifier = propertiesHandler.resolvePropertyValue(actionAnnotation.diagramIdentifiers()[0]);
 		ActivityDiagramModel currentDiagram = diagramsMap.get(resolvedIdentifier).clone();
 
-		logger.debug(actionAnnotation);
 		Object joinPointResult = joinPoint.proceed();
 		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
 			this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), actionAnnotation, joinPoint);
@@ -94,7 +73,10 @@ public class AnnotationInterceptor {
 	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, ActivityDiagramElement objectElement) {
 		Optional<ActivityDiagramElement> element;
 		Optional<ActivityDiagramElement> successorOptional;
-		element = currentDiagram.getDiagramElements().stream().filter(x -> x.getMessage().equals(resolvePropertyValue(actionAnnotation.message()))).findFirst();
+		element = currentDiagram.getDiagramElements()
+								.stream()
+								.filter(x -> x.getMessage().equals(this.propertiesHandler.resolvePropertyValue(actionAnnotation.message())))
+								.findFirst();
 		if (element.isPresent()) {
 			ActivityDiagramElement currentElement = element.get();
 			successorOptional = currentDiagram.getDiagramElements().stream()
@@ -154,10 +136,5 @@ public class AnnotationInterceptor {
 		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
 		objectElement.setMessage(objectMessageBuilder.toString().trim());
 		return objectElement;
-	}
-
-	private String resolvePropertyValue(String key) {
-		key = key != null ? key.replace("\"","").trim() : null;
-		return properties != null && key != null ? properties.getProperty(key) : key;
 	}
 }

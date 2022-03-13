@@ -9,4 +9,6 @@
 /diagram-cache.json
 /output-storage/**
 /.idea/*.xml
+/.idea
+/output-storage
 

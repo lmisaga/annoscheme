@@ -9,6 +9,7 @@ import org.annoscheme.common.model.constants.AnnotationConstants;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.annoscheme.common.model.element.JoiningDiagramElement;
+import org.annoscheme.common.properties.PropertiesHandler;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -20,16 +21,12 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,28 +37,13 @@ import com.google.auto.service.AutoService;
 @AutoService(Processor.class)
 public class ActivityAnnotationProcessor extends AbstractProcessor {
 
-	private static final String PROPERTIES_PATH = "properties/annotationvalue.properties";
-
-	private Properties properties;
-
 	private final DiagramModelCache diagramCache = DiagramModelCache.getInstance();
 
-	private Properties initProperties() {
-		try {
-			InputStream io = new FileInputStream(PROPERTIES_PATH);
-			Properties properties = new Properties();
-			properties.load(io);
-			return properties;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+	private final PropertiesHandler propertiesHandler = PropertiesHandler.getInstance();
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-		this.properties = this.initProperties();
 		if (!annotations.isEmpty()) {
 			for (TypeElement annotation : annotations) {
 				Set<ExecutableElement> annotatedElements = (Set<ExecutableElement>) roundEnv.getElementsAnnotatedWith(annotation);
@@ -265,7 +247,6 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 	}
 
 	private String resolvePropertyValue(String key) {
-		key = key != null ? key.replace("\"", "").trim() : null;
-		return properties != null && key != null ? properties.getProperty(key) : key;
+		return this.propertiesHandler.resolvePropertyValue(key);
 	}
 }
