@@ -24,15 +24,6 @@
 	</properties>
 
 	<build>
-		<resources>
-			<resource>
-				<directory>properties</directory>
-				<includes>
-					<include>*.properties</include>
-				</includes>
-				<filtering>false</filtering>
-			</resource>
-		</resources>
 		<pluginManagement>
 			<plugins>
 				<plugin>

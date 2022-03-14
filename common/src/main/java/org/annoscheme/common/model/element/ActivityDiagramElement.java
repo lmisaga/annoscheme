@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_END;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.DIAGRAM_START;
 
-public class ActivityDiagramElement extends DiagramElement implements Cloneable {
+public class ActivityDiagramElement extends DiagramElement {
 
 	private String message;
 
@@ -79,12 +79,4 @@ public class ActivityDiagramElement extends DiagramElement implements Cloneable 
 		this.parentMessage = trimAndReplaceQuotes(parentMessage);
 	}
 
-	@Override
-	public ActivityDiagramElement clone() {
-		try {
-			return (ActivityDiagramElement) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new AssertionError();
-		}
-	}
 }

@@ -24,7 +24,7 @@ import java.util.Optional;
 @Aspect
 public class AnnotationInterceptor {
 
-	private HashMap<String, ActivityDiagramModel> diagramsMap = DiagramSerializer.deserializeCachedDiagramsMap();
+	private final HashMap<String, ActivityDiagramModel> diagramsMap = DiagramSerializer.deserializeCachedDiagramsMap();
 
 	private final PropertiesHandler propertiesHandler = PropertiesHandler.getInstance();
 
@@ -32,15 +32,18 @@ public class AnnotationInterceptor {
 
 	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation)")
 	public Object actionAnnotationAdvice(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
+		System.out.println("ASPECT - action annotation" + actionAnnotation);
 		String resolvedIdentifier = propertiesHandler.resolvePropertyValue(actionAnnotation.diagramIdentifiers()[0]);
-		ActivityDiagramModel currentDiagram = diagramsMap.get(resolvedIdentifier).clone();
-
+		ActivityDiagramModel currentDiagram = diagramsMap.get(resolvedIdentifier);
+		if (ActionType.START.equals(actionAnnotation.actionType())) {
+			currentDiagram.removeObjectElements();
+		}
 		Object joinPointResult = joinPoint.proceed();
 		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
 			this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), actionAnnotation, joinPoint);
 		}
 		if (joinPointResult != null) { // joinpoint is a method call
-			this.createObjectAndGenerateDiagram(currentDiagram.clone(), joinPointResult, actionAnnotation);
+			this.createObjectAndGenerateDiagram(currentDiagram, joinPointResult, actionAnnotation);
 		}
 		return joinPointResult;
 	}
