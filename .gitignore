@@ -7,8 +7,8 @@
 /img/
 
 /diagram-cache.json
-/output-storage/**
+/output-storage
 /.idea/*.xml
 /.idea
-/output-storage
+
 
