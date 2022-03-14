@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="createDevice" author="lmisaga">
+        <createTable tableName="device">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="device_type" type="VARCHAR(255)" defaultValue="NOTEBOOK" />
+            <column name="is_reordered" type="BOOLEAN" defaultValue="FALSE" />
+            <column name="product_code" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="product_name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="quantity" type="INTEGER" defaultValue="10">
+                <constraints nullable="false" />
+            </column>
+            <column name="quantity_threshold" type="INTEGER" defaultValue="1" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="createRestockOrder" author="lmisaga">
+        <createTable tableName="restock_order">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="device_type" type="VARCHAR(255)" />
+            <column name="product_name" type="VARCHAR(255)" />
+            <column name="quantity_to_reorder" type="INTEGER">
+                <constraints nullable="false" />
+            </column>
+            <column name="send_notification" type="BOOLEAN" />
+            <column name="device_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="createUploadedFile" author="lmisaga">
+        <createTable tableName="uploaded_file">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true"  />
+            </column>
+            <column name="data" type="oid" />
+            <column name="file_name" type="VARCHAR(255)" />
+            <column name="file_type" type="VARCHAR(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="createDefectReport" author="lmisaga">
+        <createTable tableName="defect_report">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" primaryKey="true" />
+            </column>
+            <column name="date_of_discovery" type="DATE" >
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_serial_number" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="fault_description" type="VARCHAR(255)" />
+            <column name="attachment_id" type="BIGINT" />
+            <column name="device_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="createRole" author="lmisaga">
+        <createTable tableName="authorities">
+            <column name="id" type="BIGINT"/>
+            <column name="username" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="authority" type="VARCHAR(50)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="createUser" author="lmisaga">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints nullable="false" />
+            </column>
+            <column name="email" type="VARCHAR(255)" />
+            <column name="password" type="VARCHAR(100)">
+                <constraints nullable="false" />
+            </column>
+            <column name="username" type="VARCHAR(50)">
+                <constraints unique="true" primaryKey="true"/>
+            </column>
+            <column name="enabled" type="TINYINT" defaultValue="1">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="set_authorities_fk" author="lmisaga">
+        <addForeignKeyConstraint baseTableName="authorities" baseColumnNames="username"
+                                 constraintName="fk_authorities_username" referencedTableName="users"
+                                 referencedColumnNames="username" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="set_index_authorities" author="lmisaga">
+        <createIndex tableName="authorities" indexName="idx_authorities">
+            <column name="username" />
+            <column name="authority" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="set_defect_report_fkeys" author="lmisaga">
+        <addForeignKeyConstraint baseTableName="defect_report" baseColumnNames="attachment_id"
+                                 constraintName="fk_defect_report_attachment"
+                                 referencedTableName="uploaded_file"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="defect_report" baseColumnNames="device_id"
+                                 constraintName="fk_defect_report_device"
+                                 referencedTableName="device"
+                                 referencedColumnNames="id"
+                                 onDelete="NO ACTION"/>
+    </changeSet>
+
+    <changeSet id="set_restock_order_fkeys" author="lmisaga">
+        <addForeignKeyConstraint baseTableName="restock_order" baseColumnNames="device_id"
+                                 constraintName="fk_restock_order_device"
+                                 referencedTableName="device"
+                                 referencedColumnNames="id"
+                                 onDelete="NO ACTION" />
+    </changeSet>
+
+</databaseChangeLog>

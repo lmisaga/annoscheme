@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="createDummyDataDevice" author="lmisaga">
+        <insert tableName="device">
+            <column name="device_type" value="NOTEBOOK"/>
+            <column name="is_reordered" value="false" />
+            <column name="product_code" value="aSDFSADFSADf_01" />
+            <column name="product_name" value="Product Number 1" />
+            <column name="quantity" value="12" />
+            <column name="quantity_threshold" value="2" />
+        </insert>
+        <insert tableName="device">
+            <column name="device_type" value="NOTEBOOK"/>
+            <column name="is_reordered" value="false" />
+            <column name="product_code" value="afsadghbnhdadg_02" />
+            <column name="product_name" value="Product Number 2" />
+            <column name="quantity" value="6" />
+            <column name="quantity_threshold" value="1" />
+        </insert>
+        <insert tableName="device">
+            <column name="device_type" value="SMARTPHONE"/>
+            <column name="is_reordered" value="true" />
+            <column name="product_code" value="REORDERED1_SMARTPHONE xd" />
+            <column name="product_name" value="Product Number 3" />
+            <column name="quantity" value="2" />
+            <column name="quantity_threshold" value="5" />
+        </insert>
+        <insert tableName="device">
+            <column name="device_type" value="ALL_IN_ONE"/>
+            <column name="is_reordered" value="true" />
+            <column name="product_code" value="REORDERED2_ALLINONE xd" />
+            <column name="product_name" value="Product Number 4" />
+            <column name="quantity" value="1" />
+            <column name="quantity_threshold" value="4" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="createDummyDataRestockOrder" author="lmisaga">
+        <insert tableName="restock_order">
+            <column name="quantity_to_reorder" value="10"/>
+            <column name="send_notification" value="true" />
+            <column name="device_id"
+                    valueComputed="(SELECT id FROM device WHERE product_code LIKE '%REORDERED1%' LIMIT 1)" />
+            <column name="device_type" value="SMARTPHONE" />
+            <column name="product_name" value="Product Number 3" />
+        </insert>
+        <insert tableName="restock_order">
+            <column name="quantity_to_reorder" value="25"/>
+            <column name="send_notification" value="false" />
+            <column name="device_id"
+                    valueComputed="(SELECT id FROM device WHERE product_code LIKE '%REORDERED2%' LIMIT 1)" />
+            <column name="device_type" value="ALL_IN_ONE" />
+            <column name="product_name" value="Product Number 4" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="createDummyDataFaultReport" author="lmisaga">
+        <insert tableName="defect_report">
+            <column name="date_of_discovery" value="2020-02-11" />
+            <column name="device_serial_number" value="SN_35263473HAFD" />
+            <column name="fault_description" value="The device is broken. Pls fix" />
+            <column name="device_id" value="1" />
+        </insert>
+        <insert tableName="defect_report">
+            <column name="date_of_discovery" value="2020-03-03" />
+            <column name="device_serial_number" value="SN_BFB7453AFB" />
+            <column name="fault_description" value="Another device broken smh" />
+            <column name="device_id" value="2" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="createDummyAdmin" author="lmisaga">
+        <insert tableName="users">
+            <column name="email" value="admin@sClad.com"/>
+            <column name="password" value="$2a$10$rXWSOtLuCpleuF3tUUztj.G4mDhnE3gR267vavK3tmok4iwdb1jmS" />
+            <column name="username" value="admin" />
+            <column name="enabled" value="1" />
+        </insert>
+        <insert tableName="authorities">
+            <column name="username" value="admin"/>
+            <column name="authority" value="ROLE_ADMIN" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="createDummyUser" author="lmisaga">
+        <insert tableName="users">
+            <column name="email" value="user@sClad.com"/>
+            <column name="password" value="$2a$10$MxKHCVEoDimY97SUxHfPKOhR5jccXdCMbHX6rJKMwHvHkzv/SgArC" />
+            <column name="username" value="user" />
+            <column name="enabled" value="1" />
+        </insert>
+        <insert tableName="authorities">
+            <column name="username" value="user"/>
+            <column name="authority" value="ROLE_USER" />
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
