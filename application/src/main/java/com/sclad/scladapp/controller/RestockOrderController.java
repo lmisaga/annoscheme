@@ -1,5 +1,7 @@
 package com.sclad.scladapp.controller;
 
+import org.annoscheme.common.annotation.Action;
+import org.annoscheme.common.annotation.ActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 import com.sclad.scladapp.entity.RestockOrder;
+import com.sclad.scladapp.model.RestockOrderCreateModel;
 import com.sclad.scladapp.model.RestockOrderModel;
 import com.sclad.scladapp.service.RestockOrderService;
 
@@ -17,20 +20,21 @@ import com.sclad.scladapp.service.RestockOrderService;
 @RequestMapping(value = "/api/restockOrder")
 public class RestockOrderController {
 
-    private final RestockOrderService restockOrderService;
+	private final RestockOrderService restockOrderService;
 
-    @Autowired
-    public RestockOrderController(RestockOrderService restockOrderService) {
-        this.restockOrderService = restockOrderService;
-    }
+	@Autowired
+	public RestockOrderController(RestockOrderService restockOrderService) {
+		this.restockOrderService = restockOrderService;
+	}
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public RestockOrder create(@RequestBody @Valid RestockOrderModel model) {
-        return restockOrderService.create(model);
-    }
+	@Action(actionType = ActionType.START, message = "resOr.create.receiveRequest", diagramIdentifiers = {"resOr.create"})
+	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	public RestockOrderModel create(@RequestBody @Valid RestockOrderCreateModel model) {
+		return restockOrderService.create(model);
+	}
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public RestockOrder getById(@PathVariable Long id) {
-        return restockOrderService.getById(id);
-    }
+	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
+	public RestockOrder getById(@PathVariable Long id) {
+		return restockOrderService.getById(id);
+	}
 }

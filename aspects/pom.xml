@@ -21,6 +21,11 @@
 			<groupId>org.annoscheme</groupId>
 			<artifactId>common</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>5.3.13</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,5 +1,6 @@
 package org.annoscheme.aspects;
 
+import org.annoscheme.aspects.utils.JoinPointProcessor;
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.Actions;
@@ -14,6 +15,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.ConstructorSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
@@ -30,22 +33,39 @@ public class AnnotationInterceptor {
 
 	private Integer executionCount = 1;
 
+	private final Logger logger = LoggerFactory.getLogger(AnnotationInterceptor.class);
+
+	private String currentlyActiveDiagram = null;
+
 	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionAnnotation)")
 	public Object actionAnnotationAdvice(ProceedingJoinPoint joinPoint, Action actionAnnotation) throws Throwable {
-		System.out.println("ASPECT - action annotation" + actionAnnotation);
 		String resolvedIdentifier = propertiesHandler.resolvePropertyValue(actionAnnotation.diagramIdentifiers()[0]);
 		ActivityDiagramModel currentDiagram = diagramsMap.get(resolvedIdentifier);
 		if (ActionType.START.equals(actionAnnotation.actionType())) {
 			currentDiagram.removeObjectElements();
+			this.currentlyActiveDiagram = resolvedIdentifier;
+		} else if (!resolvedIdentifier.equals(this.currentlyActiveDiagram)) {
+			return joinPoint.proceed();
 		}
-		Object joinPointResult = joinPoint.proceed();
 		if (joinPoint.getKind().contains("constructor")) { // joinpoint is a constructor call
 			this.createObjectAndGenerateDiagramFromJoinPoint(new ActivityDiagramModel(currentDiagram), actionAnnotation, joinPoint);
-		}
-		if (joinPointResult != null) { // joinpoint is a method call
+			return joinPoint.proceed();
+		} else {
+			//joinPoint is a method call, verify if is a REST controller action
+			if (JoinPointProcessor.isRestControllerMethod(joinPoint)) {
+				Object requestBody = JoinPointProcessor.getRequestBodyArgumentFromJoinPoint(joinPoint);
+				//TODO pathVariables, params?
+				if (requestBody != null) {
+					this.createObjectAndGenerateDiagram(currentDiagram, requestBody, actionAnnotation);
+					return joinPoint.proceed();
+				}
+			}
+			//not a REST controller method call, proceed
+			Object joinPointResult = joinPoint.proceed();
 			this.createObjectAndGenerateDiagram(currentDiagram, joinPointResult, actionAnnotation);
+			return joinPointResult;
+
 		}
-		return joinPointResult;
 	}
 
 	@Around("(execution(* *(..)) || execution(*.new(..))) && @annotation(actionsAnnotation)")
