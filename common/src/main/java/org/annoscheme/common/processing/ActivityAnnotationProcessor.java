@@ -10,6 +10,8 @@ import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.annoscheme.common.model.element.JoiningDiagramElement;
 import org.annoscheme.common.properties.PropertiesHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -41,6 +43,8 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 
 	private final PropertiesHandler propertiesHandler = PropertiesHandler.getInstance();
 
+	private final Logger logger = LoggerFactory.getLogger(ActivityAnnotationProcessor.class);
+
 	@Override
 	@SuppressWarnings("unchecked")
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -63,7 +67,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 								this.parseDiagramElementsFromAnnotationMirrors(annotationMirrors);
 							}
 						} catch (NoSuchElementException ex) {
-							ex.printStackTrace();
+							logger.error("Exception in ActivityAnnotationProcessor:" + ex);
 						}
 					});
 				}
@@ -119,7 +123,7 @@ public class ActivityAnnotationProcessor extends AbstractProcessor {
 			List<ActivityDiagramElement> actionElementsToAdd = actionMirrors.stream().map(this::parseActivityDiagramElement).collect(Collectors.toList());
 			if (joiningMirror.isPresent()) {
 				if (conditionalMirror.isPresent()) {
-					throw new IllegalStateException("@Conditional and @Joining must not appear together!");
+					throw new IllegalStateException("@Conditional and @Joining must not be used simultaneously!");
 				}
 				JoiningDiagramElement joiningElementToAdd = this.parseJoiningElement(joiningMirror.get());
 				this.diagramCache.addElementToDiagramByIdentifier(joiningElementToAdd);

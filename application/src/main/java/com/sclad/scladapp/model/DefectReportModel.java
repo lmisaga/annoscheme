@@ -1,6 +1,5 @@
 package com.sclad.scladapp.model;
 
-import org.hibernate.validator.constraints.Length;
 import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -18,7 +17,6 @@ public class DefectReportModel extends AbstractModel {
     @NotNull
     private LocalDate dateOfDiscovery;
 
-    @Length(message = "Message must be between 10-254 characters long!", max = 254, min = 10)
     private String faultDescription;
 
     @Nullable
