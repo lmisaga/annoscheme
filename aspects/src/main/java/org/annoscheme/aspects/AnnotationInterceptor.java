@@ -1,6 +1,7 @@
 package org.annoscheme.aspects;
 
-import org.annoscheme.aspects.utils.JoinPointProcessor;
+import org.annoscheme.aspects.process.JoinPointProcessor;
+import org.annoscheme.aspects.process.model.RequestData;
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.annotation.Actions;
@@ -31,9 +32,11 @@ public class AnnotationInterceptor {
 
 	private final PropertiesHandler propertiesHandler = PropertiesHandler.getInstance();
 
-	private Integer executionCount = 1;
-
 	private final Logger logger = LoggerFactory.getLogger(AnnotationInterceptor.class);
+
+	private final JoinPointProcessor joinPointProcessor = new JoinPointProcessor();
+
+	private Integer executionCount = 1;
 
 	private String currentlyActiveDiagram = null;
 
@@ -52,11 +55,10 @@ public class AnnotationInterceptor {
 			return joinPoint.proceed();
 		} else {
 			//joinPoint is a method call, verify if is a REST controller action
-			if (JoinPointProcessor.isRestControllerMethod(joinPoint)) {
-				Object requestBody = JoinPointProcessor.getRequestBodyArgumentFromJoinPoint(joinPoint);
-				//TODO pathVariables, params?
-				if (requestBody != null) {
-					this.createObjectAndGenerateDiagram(currentDiagram, requestBody, actionAnnotation);
+			if (joinPointProcessor.isRestControllerMethod(joinPoint)) {
+				RequestData requestData = joinPointProcessor.getRequestData(joinPoint);
+				if (requestData.getRequestBody() != null) {
+					this.createObjectAndGenerateDiagram(currentDiagram, requestData.getRequestBody(), actionAnnotation);
 					return joinPoint.proceed();
 				}
 			}
