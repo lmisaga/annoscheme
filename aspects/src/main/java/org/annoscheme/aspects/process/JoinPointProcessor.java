@@ -6,7 +6,7 @@ import org.aspectj.lang.reflect.CodeSignature;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,6 @@ import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 
 public class JoinPointProcessor {
 
@@ -30,17 +29,17 @@ public class JoinPointProcessor {
 	private final List<Class<? extends Annotation>> restMethodAnnotations = Arrays.asList(RequestMapping.class,
 																						  GetMapping.class,
 																						  PostMapping.class,
-																						  PutMapping.class);
+																						  PutMapping.class,
+																						  DeleteMapping.class
+																						  );
 
 	public boolean isRestControllerMethod(ProceedingJoinPoint joinPoint) {
 		Method method = getMethodFromJoinPointSignature(joinPoint);
+		if (method != null) {
+			return restMethodAnnotations.stream().anyMatch(x -> method.getAnnotation(x) != null);
+		}
+		return false;
 
-		Optional<Class<? extends Annotation>> foundAnnotation = this.restMethodAnnotations
-				.stream()
-				.filter(annotation -> AnnotationUtils.findAnnotation(method, annotation) != null)
-				.findFirst();
-		this.getRequestData(joinPoint);
-		return foundAnnotation.isPresent();
 	}
 
 	public RequestData getRequestData(ProceedingJoinPoint joinPoint) {

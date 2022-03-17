@@ -23,7 +23,11 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+
+import static org.annoscheme.common.model.constants.PlantUmlConstants.B;
+import static org.annoscheme.common.model.constants.PlantUmlConstants.B_END;
 
 @Aspect
 public class AnnotationInterceptor {
@@ -57,8 +61,8 @@ public class AnnotationInterceptor {
 			//joinPoint is a method call, verify if is a REST controller action
 			if (joinPointProcessor.isRestControllerMethod(joinPoint)) {
 				RequestData requestData = joinPointProcessor.getRequestData(joinPoint);
-				if (requestData.getRequestBody() != null) {
-					this.createObjectAndGenerateDiagram(currentDiagram, requestData.getRequestBody(), actionAnnotation);
+				if (requestData != null) {
+					this.createObjectAndGenerateDiagramFromRequestData(currentDiagram, requestData, actionAnnotation);
 					return joinPoint.proceed();
 				}
 			}
@@ -90,11 +94,18 @@ public class AnnotationInterceptor {
 		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
+	private void createObjectAndGenerateDiagramFromRequestData(ActivityDiagramModel currentDiagram, RequestData requestData, Action actionAnnotation)
+			throws Throwable {
+		ObjectActivityDiagramElement objectElement = createObjectDiagramElementFromRequestData(requestData);
+		generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
+	}
+
 	private void createObjectAndGenerateDiagramFromJoinPoint(ActivityDiagramModel currentDiagram, Action actionAnnotation, JoinPoint joinPoint) {
 		ActivityDiagramElement objectElement = this.createObjectDiagramElement(joinPoint);
 		this.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement);
 	}
 
+	//TODO refactor, move to separate classes
 	private void generateDiagramWithInsertedObject(ActivityDiagramModel currentDiagram, Action actionAnnotation, ActivityDiagramElement objectElement) {
 		Optional<ActivityDiagramElement> element;
 		Optional<ActivityDiagramElement> successorOptional;
@@ -125,9 +136,45 @@ public class AnnotationInterceptor {
 		executionCount++;
 	}
 
+	private ObjectActivityDiagramElement createObjectDiagramElementFromRequestData(RequestData requestData) throws IllegalAccessException {
+		ObjectActivityDiagramElement objectElement = new ObjectActivityDiagramElement();
+		StringBuilder objectMessageBuilder = new StringBuilder();
+		// write pathVars
+		if (!requestData.getPathVariablesMap().isEmpty()) {
+			objectMessageBuilder.append(B+ "Path variables" + B_END + "\n");
+			requestData.getPathVariablesMap().forEach((key, value) -> objectMessageBuilder.append(key).append(" = ").append(value.toString()).append("\n"));
+		}
+		//write params
+		if (!requestData.getParamsMap().isEmpty()) {
+			objectMessageBuilder.append(B + "Params" + B_END + "\n");
+			for (Map.Entry<String, Object> entry : requestData.getParamsMap().entrySet()) {
+				objectMessageBuilder.append(entry.getKey()).append(" = ").append(entry.getValue().toString()).append("\n");
+				System.out.println(objectMessageBuilder);
+			}
+		}
+		//write body
+		if (requestData.getRequestBody() != null) {
+			Object body = requestData.getRequestBody();
+			objectMessageBuilder.append(B + "Body: ").append(body.getClass().getSimpleName()).append(B_END).append("\n");
+			Field[] fields = body.getClass().getDeclaredFields();
+			AccessibleObject.setAccessible(fields, true);
+			for (Field field : fields) {
+				if (!Modifier.isStatic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
+					objectMessageBuilder.append(field.getName())
+										.append(": ")
+										.append(field.getType().getSimpleName()).append(" = ").append(field.get(body))
+										.append("\n");
+				}
+			}
+		}
+		objectMessageBuilder.insert(objectMessageBuilder.length() - 1, "]");
+		objectElement.setMessage(objectMessageBuilder.toString().trim());
+		return objectElement;
+	}
+
 	private ObjectActivityDiagramElement createObjectDiagramElementFromResult(Object joinPointResult) throws Throwable {
 		ObjectActivityDiagramElement objectElement = new ObjectActivityDiagramElement();
-		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPointResult.getClass().getSimpleName() + "</b>\n");
+		StringBuilder objectMessageBuilder = new StringBuilder(B + joinPointResult.getClass().getSimpleName() + B_END + "\n");
 		Field[] fields = joinPointResult.getClass().getDeclaredFields();
 		AccessibleObject.setAccessible(fields, true);
 		for (Field field : fields) {
@@ -146,7 +193,7 @@ public class AnnotationInterceptor {
 	private ActivityDiagramElement createObjectDiagramElement(JoinPoint joinPoint) {
 		ObjectActivityDiagramElement objectElement = new ObjectActivityDiagramElement();
 		ConstructorSignature signature = (ConstructorSignature) joinPoint.getSignature();
-		StringBuilder objectMessageBuilder = new StringBuilder("<b>" + joinPoint.getTarget().getClass().getSimpleName() + "</b>\n");
+		StringBuilder objectMessageBuilder = new StringBuilder(B + joinPoint.getTarget().getClass().getSimpleName() + B_END + "\n");
 		Object[] arguments = joinPoint.getArgs();
 		String[] parameterNames = signature.getParameterNames();
 		Class<?>[] parameterTypes = signature.getParameterTypes();
