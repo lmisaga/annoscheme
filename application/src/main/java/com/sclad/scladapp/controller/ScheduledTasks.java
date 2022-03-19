@@ -58,6 +58,7 @@ public class ScheduledTasks {
 
         deviceRepository.saveAll(updatedDevices);
         sendLowStockNotification(updatedDevices);
+		logger.info("SimulatedStockManipulation scheduled task finished successfully");
     }
 
     //PUSH notifications using Firebase [sendLowStockNotification, sendRestockedNotification] - TBD

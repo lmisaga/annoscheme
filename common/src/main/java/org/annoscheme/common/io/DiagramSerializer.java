@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,8 +45,8 @@ public class DiagramSerializer {
 			logger.info("Serializing cached diagrams map to " + diagramMapPath);
 			objectMapper.writeValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), diagramMap);
 			logger.info("Diagrams successfully serialized to " + diagramMapPath);
-		} catch (IOException e) {
-			logger.error("Diagrams map could not be serialized: " + e.getMessage());
+		} catch (Exception err) {
+			logger.error("Diagrams map could not be serialized: " + err.getMessage());
 		}
 	}
 
@@ -55,8 +54,8 @@ public class DiagramSerializer {
 		try {
 			logger.info("Deserializing diagrams from " + DIAGRAM_CACHE_PATH);
 			return objectMapper.readValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), HashMap.class);
-		} catch (Exception e) {
-			logger.error("Could not deserialize cached diagrams map: " + e.getMessage());
+		} catch (Exception err) {
+			logger.error("Could not deserialize cached diagrams map: " + err.getMessage());
 		}
 		return new HashMap<>();
 	}
