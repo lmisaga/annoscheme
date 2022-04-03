@@ -2,23 +2,30 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+<!--	change parent with your application parent if third-party and necessary-->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.2.4.RELEASE</version>
-		<relativePath /> <!-- lookup parent from repository -->
+		<relativePath />
 	</parent>
-	<groupId>org.annoscheme</groupId>
-	<artifactId>application</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<name>scladapp</name>
-	<description>Sample for Spring Boot integration with annoScheme</description>
+	<groupId>${app.groupId}</groupId>
+	<artifactId>${app.artifactId}</artifactId>
+	<version>${app.version}</version>
+	<name>${app.name}</name>
+	<description></description>
 
 	<properties>
+<!--		fill out application properties otherwise the build will be invalid-->
+		<app.name>?</app.name>
+		<app.version>?</app.version>
+		<app.groupId>?</app.groupId>
+		<app.artifactId>?</app.artifactId>
 		<java.version>1.8</java.version>
 	</properties>
 
 	<dependencies>
+<!--		your application dependencies-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -63,7 +70,7 @@
 			<version>3.0.0</version>
 		</dependency>
 
-		<!--		ADDED DEPENDENCIES-->
+		<!--		SOLUTION DEPENDENCIES-->
 		<dependency>
 			<groupId>org.annoscheme</groupId>
 			<artifactId>common</artifactId>
@@ -78,11 +85,17 @@
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 		</dependency>
-		<!--		ADDED DEPENDENCIES-->
+		<!--		SOLUTION DEPENDENCIES-->
 	</dependencies>
 
 	<build>
 		<plugins>
+<!--			add your plugins here-->
+<!--			<plugin>-->
+
+<!--			</plugin>-->
+
+<!--			leave the following plugin as it is-->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
