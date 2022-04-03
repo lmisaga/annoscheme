@@ -53,7 +53,67 @@ Currently, these annotations are supported:
     * condition: `String` = condition label of the `@Conditional` element for which the element serves as a join point
     * diagramIdentifiers: `String[]` = identifiers of diagrams in which element is located
 
-You can find usages of these annotations in the [Examples](#Examples) section along with expected output.
+You can find usages of these annotations in the [Usages](#Usages) section along with expected output.
 
-## Examples
-To be added soon
+## Usages
+Examples with each supported annotation/element are listed along with annotation value representing the displayed element.
+Parameter strings are already resolved in the examples for clarity, but in real use scenario you should be using defined parameter strings within `/properties/annotationvalue.properties`:
+
+```
+# Sample usage for annotationvalue.properties 
+diagram1.id=Diagram 1
+diagram1.start=Start message for Diagram 1
+diagram1.someAction=Activity label 1
+diagram1.someOtherAction=Activity label 2 
+diagram2.end=End message for Diagram 1
+# ...
+```
+
+Annotations can annotate either method or constructors. These serve as a placeholder for an element within the AD, and in runtime these annotations are used within a *pointcut* defined in AspectJ to intercept objects returned from these methods.
+  * Objects are generated from the top-level class members
+  * After each return value is intercepted, the diagram is re-generated with the added object element
+  * Some object elements might appear **after** the processing of lower-level method executions due to AOP interception chain
+
+
+### Start element
+```{java}
+	@Action(actionType = ActionType.START,
+        message="Starting activity", diagramIdentifiers = {"Example ID"})
+```
+![image info](./example-images/start-element.png "Start element example")
+
+### End element
+```{java}
+	@Action(actionType = ActionType.END,
+        message="Final action", diagramIdentifiers = {"Example ID"})
+```
+![image info](./example-images/end-element.png "End element example")
+
+### Conditional element
+
+```{java}
+	// positive outcome (main) branch
+    @Conditional(branchingType = BranchingType.MAIN,
+      condition="Condition fulfilled?", diagramIdentifiers={"Example ID"})
+    @Action(actionType = ActionType.ACTION,
+        message="Main branch root", diagramIdentifiers = {"Example ID"})
+
+    //negative outcome (alternative) branch
+    @Conditional(branchingType = BranchingType.ALTERNATIVE,
+      condition="Condition fulfilled?", diagramIdentifiers={"Example ID"})
+    @Action(actionType = ActionType.ACTION,
+        message="Alternative branch root", diagramIdentifiers = {"Example ID"})
+
+```
+![image info](./example-images/conditional-element.png "End element example")
+
+### Joining element
+
+```{java}
+    @Joining(condition = "Condition fulfilled?",
+        diagramIdentifiers = {"Example ID"})
+    @Action(actionType = ActionType.ACTION,
+        message="Main branch root", diagramIdentifiers = {"Example ID"})
+
+```    
+![image info](./example-images/conditional-element.png "End element example")
