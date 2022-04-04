@@ -1,13 +1,15 @@
 # annoscheme
-Annotation scheme for code-diagram mapping in Java language. This repository serves as an aggregator project for experimenting with this solution and is not a final release - thus why versioning is static and artefacts need to be rebuild in case of any change. 
-If any bugs or errors occurr, feel free to leave a ticket or write me a PM. 
+Annotation scheme for code-diagram mapping in Java language. This repository serves as an aggregator project for experimenting with this solution and is not a
+final release - thus why versioning is static and artefacts need to be rebuild in case of any change. If any bugs or errors occur, feel free to leave a ticket
+or write me a PM.
 
-The solution works both in build time ([Maven](https://maven.apache.org/)) and runtime using AspectJ pointcut language (find out more [here](https://www.eclipse.org/aspectj/)).
+The solution works both in build time ([Maven](https://maven.apache.org/)) and runtime using AspectJ pointcut language (find out
+more [here](https://www.eclipse.org/aspectj/)).
 
 ## Content
-* Spring integration template - `spring-integration-template` 
+* Spring integration template - `spring-integration-template`
 * Spring integration example application - `spring-integration`
-* Java example - `master`
+* Java example - `plain-java-example`
 
 ## Requirements
 * Java 8 ([JDK 1.8.0-2**](https://www.oracle.com/java/technologies/downloads/)) or higher
