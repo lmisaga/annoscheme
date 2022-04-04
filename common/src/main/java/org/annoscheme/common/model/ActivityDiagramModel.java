@@ -208,7 +208,6 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 		return elementOptional.orElse(null);
 	}
 
-
 	private ActivityDiagramElement findDiagramElementByParentMessage(String parentMessage) {
 		Optional<ActivityDiagramElement> elementOptional = this.getDiagramElements().stream()
 															   .filter(element -> element.getParentMessage().equals(parentMessage)).findFirst();

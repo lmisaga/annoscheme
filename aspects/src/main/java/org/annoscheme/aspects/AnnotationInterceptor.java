@@ -82,8 +82,10 @@ public class AnnotationInterceptor {
 	}
 
 	private void createObjectAndGenerateDiagram(ActivityDiagramModel currentDiagram, Object joinPointResult, Action actionAnnotation) throws Throwable {
-		ObjectActivityDiagramElement objectElement = objectElementProcessor.createObjectDiagramElementFromResult(joinPointResult);
-		objectElementProcessor.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement, this.executionCount++);
+		if (joinPointResult != null) {
+			ObjectActivityDiagramElement objectElement = objectElementProcessor.createObjectDiagramElementFromResult(joinPointResult);
+			objectElementProcessor.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement, this.executionCount++);
+		}
 	}
 
 	private void createObjectAndGenerateDiagramFromRequestData(ActivityDiagramModel currentDiagram, RequestData requestData, Action actionAnnotation)
@@ -96,6 +98,5 @@ public class AnnotationInterceptor {
 		ActivityDiagramElement objectElement = objectElementProcessor.createObjectDiagramElement(joinPoint);
 		objectElementProcessor.generateDiagramWithInsertedObject(currentDiagram, actionAnnotation, objectElement, this.executionCount++);
 	}
-
 
 }

@@ -31,7 +31,7 @@ public class JoinPointProcessor {
 																						  PostMapping.class,
 																						  PutMapping.class,
 																						  DeleteMapping.class
-																						  );
+	);
 
 	public boolean isRestControllerMethod(ProceedingJoinPoint joinPoint) {
 		Method method = getMethodFromJoinPointSignature(joinPoint);
