@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,7 +19,7 @@ public class DiagramSerializer {
 
 	private static final String DIAGRAM_CACHE_PATH = "diagram-cache.json";
 
-	private static final ObjectMapper objectMapper = initializeObjectMapper();
+	private static final ObjectMapper objectMapper;
 
 	private static final Logger logger = LoggerFactory.getLogger(DiagramSerializer.class);
 
@@ -29,10 +28,7 @@ public class DiagramSerializer {
 		if (!directory.exists()) {
 			directory.mkdir();
 		}
-	}
-
-	private static ObjectMapper initializeObjectMapper() {
-		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper = new ObjectMapper();
 		PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
 																			  .allowIfSubType("org.annoscheme.common.model")
 																			  .allowIfSubType("java.util.ArrayList")
@@ -41,16 +37,16 @@ public class DiagramSerializer {
 		objectMapper.activateDefaultTyping(typeValidator, ObjectMapper.DefaultTyping.NON_FINAL);
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		objectMapper.addMixIn(ActivityDiagramModel.class, JsonIgnore.class);
-		return objectMapper;
-
 	}
 
 	public static void serializeCachedDiagramsMap(HashMap<String, ActivityDiagramModel> diagramMap) {
 		try {
-			logger.info("Serializing cached diagrams map to " + DIAGRAM_CACHE_PATH);
+			String diagramMapPath = DIR_PATH + "/" + DIAGRAM_CACHE_PATH;
+			logger.info("Serializing cached diagrams map to " + diagramMapPath);
 			objectMapper.writeValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), diagramMap);
-		} catch (IOException e) {
-			e.printStackTrace();
+			logger.info("Diagrams successfully serialized to " + diagramMapPath);
+		} catch (Exception err) {
+			logger.error("Diagrams map could not be serialized: " + err.getMessage());
 		}
 	}
 
@@ -58,10 +54,10 @@ public class DiagramSerializer {
 		try {
 			logger.info("Deserializing diagrams from " + DIAGRAM_CACHE_PATH);
 			return objectMapper.readValue(new File(DIR_PATH + "/" + DIAGRAM_CACHE_PATH), HashMap.class);
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception err) {
+			logger.error("Could not deserialize cached diagrams map: " + err.getMessage());
 		}
-		return null;
+		return new HashMap<>();
 	}
 
 }

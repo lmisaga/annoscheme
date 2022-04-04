@@ -7,4 +7,7 @@ public class PlantUmlConstants {
 	public static final String DIAGRAM_START = "start \n";
 	public static final String DIAGRAM_END = "stop \n";
 
+	public static final String B = "<b>";
+	public static final String B_END = "</b>";
+
 }

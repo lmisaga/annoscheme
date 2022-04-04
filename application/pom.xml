@@ -1,53 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<parent>
-		<groupId>org.annoscheme</groupId>
-		<artifactId>main</artifactId>
-		<version>1.0-SNAPSHOT</version>
-	</parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<artifactId>application</artifactId>
+<!--	change parent with your application parent if third-party and necessary-->
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.4.RELEASE</version>
+		<relativePath />
+	</parent>
+	<groupId>${app.groupId}</groupId>
+	<artifactId>${app.artifactId}</artifactId>
+	<version>${app.version}</version>
+	<name>${app.name}</name>
+	<description></description>
 
 	<properties>
-		<main-class-path>org.annoscheme.application.Main</main-class-path>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
+<!--		fill out application properties otherwise the build will be invalid-->
+		<app.name>?</app.name>
+		<app.version>?</app.version>
+		<app.groupId>?</app.groupId>
+		<app.artifactId>?</app.artifactId>
+		<java.version>1.8</java.version>
 	</properties>
 
 	<dependencies>
+<!--		your application dependencies-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.modelmapper</groupId>
+			<artifactId>modelmapper</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
+		<!--		SOLUTION DEPENDENCIES-->
 		<dependency>
 			<groupId>org.annoscheme</groupId>
 			<artifactId>common</artifactId>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.annoscheme</groupId>
 			<artifactId>aspects</artifactId>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 		</dependency>
-
+		<!--		SOLUTION DEPENDENCIES-->
 	</dependencies>
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>${main-class-path}</mainClass>
-				</configuration>
-			</plugin>
+<!--			add your plugins here-->
+<!--			<plugin>-->
 
-<!--			define aspect library for aspects lookup-->
+<!--			</plugin>-->
+
+<!--			leave the following plugin as it is-->
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.nickwongdev</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
+				<version>1.12.6</version>
 				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<proc>none</proc>
+					<complianceLevel>${java.version}</complianceLevel>
+					<showWeaveInfo>true</showWeaveInfo>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.annoscheme</groupId>
@@ -55,8 +117,21 @@
 						</aspectLibrary>
 					</aspectLibraries>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjtools</artifactId>
+						<version>${aspectj.version}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
-
 		</plugins>
 	</build>
 

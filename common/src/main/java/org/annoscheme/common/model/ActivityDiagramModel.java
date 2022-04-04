@@ -5,19 +5,19 @@ import org.annoscheme.common.annotation.ActionType;
 import org.annoscheme.common.model.element.ActivityDiagramElement;
 import org.annoscheme.common.model.element.ConditionalActivityDiagramElement;
 import org.annoscheme.common.model.element.JoiningDiagramElement;
+import org.annoscheme.common.model.element.ObjectActivityDiagramElement;
 import org.annoscheme.common.model.element.PlantUmlIntegrable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import static org.annoscheme.common.model.constants.PlantUmlConstants.END_UML;
 import static org.annoscheme.common.model.constants.PlantUmlConstants.START_UML;
 
-public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
+public class ActivityDiagramModel implements PlantUmlIntegrable {
 
 	private String diagramIdentifier;
 
@@ -31,7 +31,6 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 	@JsonIgnore
 	public String toPlantUmlString() {
 		StringBuilder plantUmlStringBuilder = new StringBuilder();
-		List<ActivityDiagramElement> diagramElementsCopy = activityDiagramElements.stream().map(ActivityDiagramElement::clone).collect(Collectors.toList());
 		ActivityDiagramElement startElement = activityDiagramElements.stream().filter(x -> x.getActionType().equals(ActionType.START)).findFirst().orElse(null);
 		if (startElement == null) {
 			throw new IllegalStateException("Diagram has no starting element");
@@ -183,12 +182,36 @@ public class ActivityDiagramModel implements PlantUmlIntegrable, Cloneable {
 		this.activityDiagramElements = activityDiagramElements;
 	}
 
-	@Override
-	public ActivityDiagramModel clone() {
-		try {
-			return (ActivityDiagramModel) super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new AssertionError();
-		}
+	public void removeObjectElements() {
+		List<ActivityDiagramElement> elementsToRemove = new ArrayList<>();
+		this.getDiagramElements().stream()
+			.filter(element -> element instanceof ObjectActivityDiagramElement)
+			.forEach(diagramElement -> {
+				ObjectActivityDiagramElement objectDiagramElement = (ObjectActivityDiagramElement) diagramElement;
+				ActivityDiagramElement predecessor = this.findDiagramElementByMessage(objectDiagramElement.getParentMessage());
+				ActivityDiagramElement successor = this.findDiagramElementByParentMessage(objectDiagramElement.getMessage());
+				if (predecessor != null) {
+					if (ActionType.END.equals(objectDiagramElement.getActionType())) {
+						predecessor.setActionType(ActionType.END);
+					} else if (successor != null) {
+						successor.setParentMessage(predecessor.getMessage());
+					}
+				}
+				elementsToRemove.add(objectDiagramElement);
+			});
+		this.getDiagramElements().removeAll(elementsToRemove);
+	}
+
+	private ActivityDiagramElement findDiagramElementByMessage(String message) {
+		Optional<ActivityDiagramElement> elementOptional = this.getDiagramElements().stream()
+															   .filter(element -> element.getMessage().equals(message)).findFirst();
+		return elementOptional.orElse(null);
+	}
+
+
+	private ActivityDiagramElement findDiagramElementByParentMessage(String parentMessage) {
+		Optional<ActivityDiagramElement> elementOptional = this.getDiagramElements().stream()
+															   .filter(element -> element.getParentMessage().equals(parentMessage)).findFirst();
+		return elementOptional.orElse(null);
 	}
 }
