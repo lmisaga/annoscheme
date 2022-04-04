@@ -10,15 +10,14 @@
 	<version>1.0-SNAPSHOT</version>
 
 	<modules>
-<!--		define your application module in properties (tag app.module.name)-->
-<!--		<module>${app.module.name}</module>-->
+		<module>${app.module.name}</module>
 		<module>common</module>
 		<module>aspects</module>
 	</modules>
 
 	<properties>
-<!--		your application Maven module name (defined in !application! module)-->
-		<app.module.name>?</app.module.name>
+		<!--		your own application module name-->
+		<app.module.name>application</app.module.name>
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,7 +39,6 @@
 						<useIncrementalCompilation>false</useIncrementalCompilation>
 					</configuration>
 				</plugin>
-
 				<plugin>
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>aspectj-maven-plugin</artifactId>

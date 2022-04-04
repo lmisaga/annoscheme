@@ -2,74 +2,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-<!--	change parent with your application parent if third-party and necessary-->
+	<!--	change parent if necessary, if 'main' module stays parent,-->
+	<!--	 change main POM as well with application title-->
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
-		<relativePath />
+		<groupId>org.annoscheme</groupId>
+		<artifactId>main</artifactId>
+		<version>1.0-SNAPSHOT</version>
 	</parent>
-	<groupId>${app.groupId}</groupId>
-	<artifactId>${app.artifactId}</artifactId>
-	<version>${app.version}</version>
-	<name>${app.name}</name>
-	<description></description>
 
+	<version>${app.version}</version>
+	<artifactId>${app.artifactId</artifactId>
+	<groupId>${app.groupId}</groupId>
+
+	<!--	add your own application properties-->
 	<properties>
-<!--		fill out application properties otherwise the build will be invalid-->
-		<app.name>?</app.name>
-		<app.version>?</app.version>
-		<app.groupId>?</app.groupId>
-		<app.artifactId>?</app.artifactId>
+		<app.groupId>org.annoscheme</app.groupId>
+		<app.version>1.0-SNAPSHOT</app.version>
+		<app.artifactId>application</app.artifactId>
 		<java.version>1.8</java.version>
 	</properties>
 
 	<dependencies>
-<!--		your application dependencies-->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-websocket</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.junit.vintage</groupId>
-					<artifactId>junit-vintage-engine</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.modelmapper</groupId>
-			<artifactId>modelmapper</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-
 		<!--		SOLUTION DEPENDENCIES-->
 		<dependency>
 			<groupId>org.annoscheme</groupId>
@@ -90,16 +43,6 @@
 
 	<build>
 		<plugins>
-<!--			add your plugins here-->
-<!--			<plugin>-->
-
-<!--			</plugin>-->
-
-<!--			leave the following plugin as it is-->
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
 			<plugin>
 				<groupId>com.nickwongdev</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
@@ -132,6 +75,7 @@
 					</dependency>
 				</dependencies>
 			</plugin>
+			<!--		add your build plugins here-->
 		</plugins>
 	</build>
 
