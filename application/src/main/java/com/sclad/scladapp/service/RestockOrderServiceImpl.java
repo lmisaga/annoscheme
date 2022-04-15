@@ -1,6 +1,8 @@
 package com.sclad.scladapp.service;
 
 import org.annoscheme.common.annotation.Action;
+import org.annoscheme.common.annotation.BranchingType;
+import org.annoscheme.common.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import com.sclad.scladapp.entity.Device;
@@ -29,7 +31,8 @@ public class RestockOrderServiceImpl implements RestockOrderService {
 	}
 
 	@Override
-	@Action(message = "resOr.create.createResOr", parentMessage = "resOr.create.receiveRequest", diagramIdentifiers = {"resOr.create"})
+	@Action(message = "resOr.create.createResOr", parentMessage = "resOr.create.findDeviceById", diagramIdentifiers = {"resOr.create"})
+	@Conditional(condition = "resOr.create.foundDevice?", type = BranchingType.MAIN, diagramIdentifiers = {"resOr.create"})
 	public RestockOrderModel create(RestockOrderCreateModel model) {
 		RestockOrder restockOrder = new RestockOrder();
 		Device device = deviceService.getById(model.getDeviceId());
