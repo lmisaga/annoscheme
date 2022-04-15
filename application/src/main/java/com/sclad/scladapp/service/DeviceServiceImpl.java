@@ -47,6 +47,7 @@ public class DeviceServiceImpl implements DeviceService {
 	}
 
 	@Action(message = "device.details.findById", parentMessage = "device.details.receiveRequest", diagramIdentifiers = {"device.details"})
+	@Action(message = "resOr.create.findDeviceById", parentMessage = "resOr.create.receiveRequest", diagramIdentifiers = {"resOr.create"})
     public Device getById(Long id) {
 		return deviceRepository.findById(id)
                 .orElseThrow(() -> new DeviceNotFoundException(id));

@@ -65,7 +65,11 @@ public class ActivityDiagramModel implements PlantUmlIntegrable {
 				//get alternative branch
 				plantUmlStringBuilder.append(this.getPlantUmlConditionalBranch(currentConditional.getAlternateFlowDirectChild()));
 			} else {
-				plantUmlStringBuilder.append(current.toPlantUmlString());
+				if (current != null) {
+					plantUmlStringBuilder.append(current.toPlantUmlString());
+				} else {
+					break;
+				}
 			}
 			if (current.getActionType().equals(ActionType.END)) {
 				reachedEndState = true;
