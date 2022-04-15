@@ -1,25 +1,25 @@
 package com.sclad.scladapp.mapper;
 
+import com.sclad.scladapp.entity.DefectReport;
+import com.sclad.scladapp.model.DefectReportModel;
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.ActionType;
 import org.springframework.stereotype.Component;
-
-import com.sclad.scladapp.entity.DefectReport;
-import com.sclad.scladapp.model.DefectReportModel;
+import org.springframework.util.StringUtils;
 
 @Component
 public class DefectReportMapper extends AbstractEntityMapper<DefectReport, DefectReportModel> {
 
-	protected DefectReportMapper() {
-		super(DefectReport.class, DefectReportModel.class);
-	}
+    protected DefectReportMapper(Class<DefectReport> entityClass, Class<DefectReportModel> defectReportModelClass) {
+        super(entityClass, defectReportModelClass);
+    }
 
-	@Action(actionType = ActionType.END, message = "report.find.mapToDto", parentMessage = "report.find.findById", diagramIdentifiers = {"report.find"})
-	public DefectReportModel toDto(DefectReport entity) {
-		DefectReportModel model = new DefectReportModel();
-		if (entity.getDevice() != null) {
-			model.setDeviceSerialNumber(null);
-		}
-		return super.toDto(entity);
-	}
+    @Override
+    @Action(actionType = ActionType.END, message = "device.details.mapToModel", parentMessage = "device.details.findById", diagramIdentifiers = {"device.details"})
+    public DefectReportModel toDto(DefectReport defectReport) {
+        if (!StringUtils.isEmpty(defectReport.getDeviceSerialNumber())) {
+            defectReport.setDeviceSerialNumber("");
+        }
+        return super.toDto(defectReport);
+    }
 }
