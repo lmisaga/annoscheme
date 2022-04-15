@@ -7,10 +7,12 @@ import com.sclad.scladapp.model.DefectReportModel;
 
 public interface DefectReportService extends AbstractService<DefectReport> {
 
-    DefectReport create(DefectReportModel model);
+	DefectReport create(DefectReportModel model);
 
-    List<DefectReport> getAll();
+	List<DefectReport> getAll();
 
-    void resolveFaultReport(Long id);
+	void resolveFaultReport(Long id);
+
+	DefectReportModel findById(Long id);
 
 }
