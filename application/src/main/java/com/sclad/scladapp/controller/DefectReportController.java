@@ -1,5 +1,7 @@
 package com.sclad.scladapp.controller;
 
+import org.annoscheme.common.annotation.Action;
+import org.annoscheme.common.annotation.ActionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,29 +23,30 @@ public class DefectReportController {
 
     private final DefectReportService defectReportService;
 
-    @Autowired
-    public DefectReportController(DefectReportService defectReportService) {
-        this.defectReportService = defectReportService;
-    }
+	@Autowired
+	public DefectReportController(DefectReportService defectReportService) {
+		this.defectReportService = defectReportService;
+	}
 
-    @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public Long create(@RequestBody @Valid DefectReportModel model) {
-        return defectReportService.create(model).getId();
-    }
+	@RequestMapping(value = "/create", method = RequestMethod.POST)
+	public Long create(@RequestBody @Valid DefectReportModel model) {
+		return defectReportService.create(model).getId();
+	}
 
-    @RequestMapping(value = "/getDefectReportById/{id}", method = RequestMethod.GET)
-    public DefectReport getById(@PathVariable("id") Long id) {
-        return defectReportService.getById(id);
-    }
+	@RequestMapping(value = "{id}", method = RequestMethod.GET)
+	@Action(actionType = ActionType.START, message = "report.find.receiveRequest", diagramIdentifiers = {"report.find"})
+	public DefectReportModel getById(@PathVariable("id") Long id) {
+		return defectReportService.findById(id);
+	}
 
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
-    public List<DefectReport> list() {
-        return defectReportService.getAll();
-    }
+	@RequestMapping(value = "/list", method = RequestMethod.GET)
+	public List<DefectReport> list() {
+		return defectReportService.getAll();
+	}
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @RequestMapping(value = "/resolve/{id}", method = RequestMethod.DELETE)
-    public void resolve(@PathVariable Long id) {
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@RequestMapping(value = "/resolve/{id}", method = RequestMethod.DELETE)
+	public void resolve(@PathVariable Long id) {
         defectReportService.resolveFaultReport(id);
     }
 }

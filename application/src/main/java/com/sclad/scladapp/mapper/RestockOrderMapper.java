@@ -15,7 +15,7 @@ public class RestockOrderMapper extends AbstractEntityMapper<RestockOrder, Resto
 	}
 
 	@Override
-	@Action(actionType = ActionType.END, message = "resOr.create.mapToDto", parentMessage = "resOr.create.createResOr", diagramIdentifiers = {"resOr.create"})
+	@Action(actionType = ActionType.END, message = "resOr.create.mapToDto", parentMessage = "resOr.create.logSuccess", diagramIdentifiers = {"resOr.create"})
 	public RestockOrderModel toDto(RestockOrder restockOrder) {
 		if (restockOrder.getDevice() == null) {
 			throw new IllegalStateException("Invalid restock order entity state");

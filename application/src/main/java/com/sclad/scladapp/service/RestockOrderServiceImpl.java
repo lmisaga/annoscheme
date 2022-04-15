@@ -3,6 +3,8 @@ package com.sclad.scladapp.service;
 import org.annoscheme.common.annotation.Action;
 import org.annoscheme.common.annotation.BranchingType;
 import org.annoscheme.common.annotation.Conditional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.sclad.scladapp.entity.Device;
@@ -16,6 +18,8 @@ import com.sclad.scladapp.repository.RestockOrderRepository;
 
 @Service
 public class RestockOrderServiceImpl implements RestockOrderService {
+
+	private static final Logger logger = LoggerFactory.getLogger(RestockOrderServiceImpl.class);
 
 	private final RestockOrderRepository restockOrderRepository;
 	private final DeviceRepository deviceRepository;
@@ -46,13 +50,19 @@ public class RestockOrderServiceImpl implements RestockOrderService {
 		restockOrder.setQuantityToReorder(model.getQuantityToReorder());
 		restockOrder.setSendNotification(model.getSendNotification());
 		restockOrderRepository.save(restockOrder);
-		//TODO map to Dto
-		return restockOrderMapper.toDto(restockOrder);
+		RestockOrderModel createdModel = restockOrderMapper.toDto(restockOrder);
+		this.logSuccess(restockOrder);
+		return createdModel;
 	}
 
 	@Override
 	public RestockOrder getById(Long id) {
 		return restockOrderRepository.findById(id)
 									 .orElseThrow(() -> new DeviceNotFoundException(id));
+	}
+
+	@Action(message = "resOr.create.logSuccess", diagramIdentifiers = {"resOr.create"}, parentMessage = "resOr.create.createResOr")
+	private void logSuccess(RestockOrder restockOrder) {
+		logger.info("Created restock order ID {} for device {} successfully.", restockOrder.getId(), restockOrder.getDevice().getId());
 	}
 }
