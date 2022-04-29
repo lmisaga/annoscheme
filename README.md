@@ -9,7 +9,7 @@ more [here](https://www.eclipse.org/aspectj/)).
 ## Content
 * Spring integration template - `spring-integration-template`
 * Spring integration example application - `spring-integration`
-* Java example - `plain-java-example`
+* Java integration template - `plain-java-template`
 
 ## Requirements
 * Java 8 ([JDK 1.8.0-2**](https://www.oracle.com/java/technologies/downloads/)) or higher
