@@ -118,4 +118,4 @@ Annotations can annotate either method or constructors. These serve as a placeho
         message="Main branch root", diagramIdentifiers = {"Example ID"})
 
 ```    
-![image info](./example-images/conditional-element.png "Joining element example")
+![image info](./example-images/joining-element.png "Joining element example")
