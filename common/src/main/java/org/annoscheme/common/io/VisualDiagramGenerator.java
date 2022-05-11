@@ -25,7 +25,10 @@ public class VisualDiagramGenerator {
 			String imageFileName = "img/" + fileName + ".png";
 			OutputStream os = new FileOutputStream(imageFileName);
 			SourceStringReader reader = new SourceStringReader(plantUmlString);
-			logger.info("Saving diagram image " + fileName);
+			StringBuilder logMessageBuilder = new StringBuilder("Saving diagram ")
+					.append(fileName)
+					.append(plantUmlString);
+			logger.info(logMessageBuilder);
 			reader.generateImage(os);
 		} catch (IOException | NoSuchElementException e) {
 			logger.error("Error while generating image: " + e.getMessage());
